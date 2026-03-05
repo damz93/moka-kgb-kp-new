@@ -8,13 +8,13 @@
   "theme_color": "#2563eb",
   "icons": [
     {
-      "src": "https://picsum.photos/192/192",
+      "src": "https://upload.wikimedia.org/wikipedia/commons/thumb/9/95/Coat_of_Arms_of_City_Makassar.png/960px-Coat_of_Arms_of_City_Makassar.png",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "any maskable"
     },
     {
-      "src": "https://picsum.photos/512/512",
+      "src": "https://upload.wikimedia.org/wikipedia/commons/thumb/9/95/Coat_of_Arms_of_City_Makassar.png/960px-Coat_of_Arms_of_City_Makassar.png",
       "sizes": "512x512",
       "type": "image/png"
     }
