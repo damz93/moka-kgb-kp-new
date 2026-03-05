@@ -1,9 +1,6 @@
 import './index.css';
 import { createIcons, Home, Search, FilePlus, User, CheckCircle2, Clock, AlertCircle, ChevronRight, LogOut, LayoutDashboard, Users, FileText, Settings, Plus, Edit2, Trash2, Filter } from 'lucide';
 import Swal from 'sweetalert2';
-import { Chart, registerables } from 'chart.js';
-
-Chart.register(...registerables);
 
 // --- CONFIGURATION ---
 const GAS_URL = 'https://script.google.com/macros/s/AKfycbxtRrvx2gnUtopyDs238JNH8CO2baH2k2K-JbNRzY2XXxH4sEtYlzYiAqpn6YfyaXN7iQ/exec'; // User will replace this
@@ -406,15 +403,20 @@ const renderAdmin = (container: Element) => {
         </div>
       </div>
 
-      <!-- Charts -->
-      <div class="grid md:grid-cols-2 gap-8">
-        <div class="glass-card p-6">
-          <h3 class="font-bold text-slate-700 mb-4">Tren Pengajuan Bulanan</h3>
-          <canvas id="chart-monthly"></canvas>
+      <!-- List Pengajuan Bulanan -->
+      <div class="glass-card p-6 space-y-6">
+        <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+          <div class="flex items-center gap-2">
+            <i data-lucide="filter" class="w-5 h-5 text-blue-600"></i>
+            <h3 class="font-bold text-slate-700">List Pengajuan Bulanan</h3>
+          </div>
+          <div class="flex gap-2">
+            <select id="filter-month" class="input-field py-2 px-4 text-sm w-auto min-w-[140px]"></select>
+            <select id="filter-year" class="input-field py-2 px-4 text-sm w-auto"></select>
+          </div>
         </div>
-        <div class="glass-card p-6">
-          <h3 class="font-bold text-slate-700 mb-4">Distribusi Kategori</h3>
-          <canvas id="chart-category"></canvas>
+        <div id="monthly-list-container" class="overflow-x-auto no-scrollbar min-h-[200px]">
+          <div class="flex justify-center py-12"><div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div></div>
         </div>
       </div>
 
@@ -456,8 +458,9 @@ const loadAdminData = async () => {
     if ($('#stat-pending')) $('#stat-pending')!.textContent = adminData.stats.pending;
     if ($('#stat-selesai')) $('#stat-selesai')!.textContent = adminData.stats.selesai;
 
-    // Render Charts
-    renderCharts(adminData.charts);
+    // Initial Monthly List
+    populateFilters();
+    renderMonthlyList();
 
     // Initial Tab
     renderAdminTab('kgb');
@@ -476,41 +479,71 @@ const loadAdminData = async () => {
   }
 };
 
-const renderCharts = (chartData: any) => {
-  const ctxMonthly = (document.getElementById('chart-monthly') as HTMLCanvasElement)?.getContext('2d');
-  const ctxCategory = (document.getElementById('chart-category') as HTMLCanvasElement)?.getContext('2d');
+const populateFilters = () => {
+  const monthFilter = $('#filter-month') as HTMLSelectElement;
+  const yearFilter = $('#filter-year') as HTMLSelectElement;
+  if (!monthFilter || !yearFilter) return;
 
-  if (ctxMonthly) {
-    new Chart(ctxMonthly, {
-      type: 'line',
-      data: {
-        labels: chartData.monthly.labels,
-        datasets: [{
-          label: 'Pengajuan',
-          data: chartData.monthly.values,
-          borderColor: '#2563eb',
-          backgroundColor: 'rgba(37, 99, 235, 0.1)',
-          fill: true,
-          tension: 0.4
-        }]
-      },
-      options: { responsive: true, plugins: { legend: { display: false } } }
-    });
+  const months = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
+  monthFilter.innerHTML = months.map((m, i) => `<option value="${i}" ${i === new Date().getMonth() ? 'selected' : ''}>${m}</option>`).join('');
+
+  const currentYear = new Date().getFullYear();
+  const years = [];
+  for (let y = currentYear - 2; y <= currentYear + 2; y++) {
+    years.push(y);
+  }
+  yearFilter.innerHTML = years.map(y => `<option value="${y}" ${y === currentYear ? 'selected' : ''}>${y}</option>`).join('');
+
+  monthFilter.addEventListener('change', renderMonthlyList);
+  yearFilter.addEventListener('change', renderMonthlyList);
+};
+
+const renderMonthlyList = () => {
+  const container = $('#monthly-list-container');
+  const monthFilter = $('#filter-month') as HTMLSelectElement;
+  const yearFilter = $('#filter-year') as HTMLSelectElement;
+  if (!container || !monthFilter || !yearFilter) return;
+
+  const month = parseInt(monthFilter.value);
+  const year = parseInt(yearFilter.value);
+
+  const allRequests = [...adminData.kgb, ...adminData.kp];
+  const filtered = allRequests.filter(item => {
+    const date = new Date(item.timestamp);
+    return date.getMonth() === month && date.getFullYear() === year;
+  });
+
+  if (filtered.length === 0) {
+    container.innerHTML = `<p class="text-center py-12 text-slate-400">Tidak ada pengajuan pada periode ini.</p>`;
+    return;
   }
 
-  if (ctxCategory) {
-    new Chart(ctxCategory, {
-      type: 'doughnut',
-      data: {
-        labels: ['KGB', 'KP'],
-        datasets: [{
-          data: [chartData.category.kgb, chartData.category.kp],
-          backgroundColor: ['#2563eb', '#6366f1']
-        }]
-      },
-      options: { responsive: true }
-    });
-  }
+  container.innerHTML = `
+    <table class="w-full text-left border-collapse">
+      <thead>
+        <tr class="text-slate-400 text-xs uppercase tracking-widest border-b border-white/20">
+          <th class="pb-4 font-bold">Tanggal</th>
+          <th class="pb-4 font-bold">Nama</th>
+          <th class="pb-4 font-bold">Kategori</th>
+          <th class="pb-4 font-bold">Status</th>
+        </tr>
+      </thead>
+      <tbody class="text-sm">
+        ${filtered.map(item => `
+          <tr class="border-b border-white/10 hover:bg-white/10 transition-colors">
+            <td class="py-4 text-slate-500">${formatDate(item.timestamp).split(' pukul')[0]}</td>
+            <td class="py-4 font-bold text-slate-700">${item.nama}</td>
+            <td class="py-4">
+              <span class="px-2 py-1 rounded-md text-[10px] font-bold uppercase ${item.kategori === 'KGB' ? 'bg-blue-50 text-blue-600' : 'bg-indigo-50 text-indigo-600'}">${item.kategori}</span>
+            </td>
+            <td class="py-4">
+              <span class="text-xs font-medium text-slate-600">${item.status}</span>
+            </td>
+          </tr>
+        `).join('')}
+      </tbody>
+    </table>
+  `;
 };
 
 const renderAdminTab = (tab: string) => {
@@ -599,8 +632,17 @@ const renderAdminTab = (tab: string) => {
 
 // --- GLOBAL ACTIONS ---
 (window as any).editPegawai = async (nik?: string) => {
-  const p = nik ? adminData.pegawai.find((item: any) => item.nik === nik) : null;
+  // Gunakan toString() untuk memastikan perbandingan NIK akurat (string vs number)
+  const p = nik ? adminData.pegawai.find((item: any) => item.nik.toString() === nik.toString()) : null;
   
+  const formatDateForInput = (dateVal: any) => {
+    if (!dateVal) return '';
+    try {
+      const d = new Date(dateVal);
+      return isNaN(d.getTime()) ? '' : d.toISOString().split('T')[0];
+    } catch (e) { return ''; }
+  };
+
   const { value: formValues } = await Swal.fire({
     title: nik ? 'Edit Pegawai' : 'Tambah Pegawai',
     html: `
@@ -620,11 +662,11 @@ const renderAdminTab = (tab: string) => {
         <div class="grid grid-cols-2 gap-4">
           <div>
             <label class="text-xs font-bold text-slate-400">TMT KGB Berikutnya</label>
-            <input id="swal-kgb" type="date" class="input-field mt-1" value="${p?.tmtKgbNext ? new Date(p.tmtKgbNext).toISOString().split('T')[0] : ''}">
+            <input id="swal-kgb" type="date" class="input-field mt-1" value="${formatDateForInput(p?.tmtKgbNext)}">
           </div>
           <div>
             <label class="text-xs font-bold text-slate-400">TMT KP Berikutnya</label>
-            <input id="swal-kp" type="date" class="input-field mt-1" value="${p?.tmtKpNext ? new Date(p.tmtKpNext).toISOString().split('T')[0] : ''}">
+            <input id="swal-kp" type="date" class="input-field mt-1" value="${formatDateForInput(p?.tmtKpNext)}">
           </div>
         </div>
       </div>
@@ -632,9 +674,15 @@ const renderAdminTab = (tab: string) => {
     focusConfirm: false,
     showCancelButton: true,
     preConfirm: () => {
+      const nikVal = (document.getElementById('swal-nik') as HTMLInputElement).value;
+      const namaVal = (document.getElementById('swal-nama') as HTMLInputElement).value;
+      if (!nikVal || !namaVal) {
+        Swal.showValidationMessage('NIK dan Nama wajib diisi');
+        return false;
+      }
       return {
-        nik: (document.getElementById('swal-nik') as HTMLInputElement).value,
-        nama: (document.getElementById('swal-nama') as HTMLInputElement).value,
+        nik: nikVal,
+        nama: namaVal,
         jabatan: (document.getElementById('swal-jabatan') as HTMLInputElement).value,
         tmtKgbNext: (document.getElementById('swal-kgb') as HTMLInputElement).value,
         tmtKpNext: (document.getElementById('swal-kp') as HTMLInputElement).value
@@ -643,7 +691,7 @@ const renderAdminTab = (tab: string) => {
   });
 
   if (formValues) {
-    Swal.fire({ title: 'Saving...', didOpen: () => Swal.showLoading() });
+    Swal.fire({ title: 'Menyimpan...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
     try {
       const res = await fetch(GAS_URL, {
         method: 'POST',
@@ -655,13 +703,14 @@ const renderAdminTab = (tab: string) => {
       });
       const data = await res.json();
       if (data.success) {
-        Swal.fire('Berhasil', 'Data pegawai disimpan', 'success');
+        await Swal.fire('Berhasil', 'Data pegawai berhasil disimpan', 'success');
         loadAdminData();
       } else {
-        Swal.fire('Gagal', data.message, 'error');
+        Swal.fire('Gagal', data.message || 'Terjadi kesalahan pada server', 'error');
       }
     } catch (err) {
-      Swal.fire('Error', 'Gagal menyimpan data', 'error');
+      console.error('Save Error:', err);
+      Swal.fire('Error', 'Gagal menghubungi server. Pastikan GAS_URL sudah benar.', 'error');
     }
   }
 };
