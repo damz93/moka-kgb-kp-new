@@ -17,6 +17,31 @@ let adminData: any = null;
 const $ = (selector: string) => document.querySelector(selector);
 const $$ = (selector: string) => document.querySelectorAll(selector);
 
+const formatDate = (dateStr: string) => {
+  if (!dateStr) return '-';
+  try {
+    const date = new Date(dateStr);
+    return date.toLocaleDateString('id-ID', {
+      day: '2-digit',
+      month: 'long',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+  } catch (e) {
+    return dateStr;
+  }
+};
+
+const isNear = (dateStr: string, thresholdDays: number) => {
+  if (!dateStr) return false;
+  const target = new Date(dateStr);
+  const now = new Date();
+  const diffTime = target.getTime() - now.getTime();
+  const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+  return diffDays > 0 && diffDays <= thresholdDays;
+};
+
 const render = () => {
   const main = $('#main-content');
   if (!main) return;
@@ -76,6 +101,7 @@ const renderHome = (container: Element) => {
           <ul class="space-y-3 text-slate-600">
             <li class="flex items-center gap-2"><i data-lucide="check-circle-2" class="w-4 h-4 text-green-500"></i> SK Pangkat Terakhir</li>
             <li class="flex items-center gap-2"><i data-lucide="check-circle-2" class="w-4 h-4 text-green-500"></i> SK KGB Terakhir</li>
+            <li class="flex items-center gap-2"><i data-lucide="check-circle-2" class="w-4 h-4 text-green-500"></i> Penilaian Kinerja (SKP)</li>
           </ul>
         </div>
         <div class="glass-card p-8 space-y-4">
@@ -85,10 +111,8 @@ const renderHome = (container: Element) => {
           <h3 class="text-2xl font-bold text-blue-900">Syarat KP</h3>
           <ul class="space-y-3 text-slate-600">
             <li class="flex items-center gap-2"><i data-lucide="check-circle-2" class="w-4 h-4 text-green-500"></i> SK CPNS & PNS</li>
-            <li class="flex items-center gap-2"><i data-lucide="check-circle-2" class="w-4 h-4 text-green-500"></i> SK Pangkat Terakhir</li>
-            <li class="flex items-center gap-2"><i data-lucide="check-circle-2" class="w-4 h-4 text-green-500"></i> SK Jabatan Terakhir</li>
-            <li class="flex items-center gap-2"><i data-lucide="check-circle-2" class="w-4 h-4 text-green-500"></i> Surat Pernyataan Pelantikan(khusus pejabat) </li>            
-            <li class="flex items-center gap-2"><i data-lucide="check-circle-2" class="w-4 h-4 text-green-500"></i> Ijazah & Transkrip Terakhir</li>
+            <li class="flex items-center gap-2"><i data-lucide="check-circle-2" class="w-4 h-4 text-green-500"></i> Ijazah Terakhir</li>
+            <li class="flex items-center gap-2"><i data-lucide="check-circle-2" class="w-4 h-4 text-green-500"></i> SKP 2 Tahun Terakhir</li>
           </ul>
         </div>
       </div>
@@ -142,7 +166,7 @@ const renderCek = (container: Element) => {
           </div>
         `;
       } else {
-        const { nama, nik, kategori, status, timeline } = data.data;
+        const { nama, nik, kategori, status, timeline, timestamp } = data.data;
         const statusColors: any = {
           'Diajukan': 'bg-blue-100 text-blue-600',
           'Diverifikasi': 'bg-amber-100 text-amber-600',
@@ -157,7 +181,7 @@ const renderCek = (container: Element) => {
               <div>
                 <p class="text-xs font-bold text-slate-400 uppercase tracking-widest">Nama Pegawai</p>
                 <h3 class="text-2xl font-bold text-blue-950">${nama}</h3>
-                <p class="text-slate-500">NIK: ${nik}</p>
+                <p class="text-slate-500">NIK: ${nik} • Diajukan: ${formatDate(timestamp)}</p>
               </div>
               <span class="px-4 py-2 rounded-full text-sm font-bold ${statusColors[status] || 'bg-slate-100'}">${status}</span>
             </div>
@@ -173,7 +197,7 @@ const renderCek = (container: Element) => {
                     <div class="absolute -left-8 top-1 timeline-dot ${t.active ? 'bg-blue-600' : 'bg-slate-200'}"></div>
                     <div class="${t.active ? 'text-blue-900 font-bold' : 'text-slate-400'}">
                       <p class="text-sm">${t.label}</p>
-                      <p class="text-xs opacity-70">${t.date || ''}</p>
+                      <p class="text-xs opacity-70">${t.date ? formatDate(t.date) : ''}</p>
                     </div>
                   </div>
                 `).join('')}
@@ -525,29 +549,47 @@ const renderAdminTab = (tab: string) => {
     content.innerHTML = `
       <div class="flex justify-between mb-4">
         <h4 class="font-bold text-slate-700">Master Pegawai</h4>
-        <button class="bg-blue-600 text-white px-4 py-2 rounded-xl text-xs font-bold flex items-center gap-2"><i data-lucide="plus" class="w-4 h-4"></i> Tambah Pegawai</button>
+        <button onclick="window.editPegawai()" class="bg-blue-600 text-white px-4 py-2 rounded-xl text-xs font-bold flex items-center gap-2"><i data-lucide="plus" class="w-4 h-4"></i> Tambah Pegawai</button>
       </div>
       <table class="w-full text-left border-collapse">
         <thead>
           <tr class="text-slate-400 text-xs uppercase tracking-widest border-b border-white/20">
-            <th class="pb-4 font-bold">NIK</th>
-            <th class="pb-4 font-bold">Nama</th>
+            <th class="pb-4 font-bold">NIK / Nama</th>
             <th class="pb-4 font-bold">Jabatan</th>
+            <th class="pb-4 font-bold">Jadwal KGB</th>
+            <th class="pb-4 font-bold">Jadwal KP</th>
             <th class="pb-4 font-bold text-right">Aksi</th>
           </tr>
         </thead>
         <tbody class="text-sm">
-          ${adminData.pegawai.map((p: any) => `
+          ${adminData.pegawai.map((p: any) => {
+            const kgbNear = isNear(p.tmtKgbNext, 90); // 3 months
+            const kpNear = isNear(p.tmtKpNext, 180); // 6 months
+            return `
             <tr class="border-b border-white/10 hover:bg-white/10 transition-colors">
-              <td class="py-4 font-mono">${p.nik}</td>
-              <td class="py-4 font-bold text-slate-700">${p.nama}</td>
+              <td class="py-4">
+                <p class="font-bold text-slate-700">${p.nama}</p>
+                <p class="text-xs font-mono text-slate-400">${p.nik}</p>
+              </td>
               <td class="py-4 text-slate-500">${p.jabatan}</td>
+              <td class="py-4">
+                <div class="flex flex-col">
+                  <span class="text-xs ${kgbNear ? 'text-red-500 font-bold' : 'text-slate-600'}">${p.tmtKgbNext ? formatDate(p.tmtKgbNext).split(' pukul')[0] : '-'}</span>
+                  ${kgbNear ? '<span class="text-[9px] bg-red-100 text-red-600 px-1 rounded w-fit mt-1">Segera</span>' : ''}
+                </div>
+              </td>
+              <td class="py-4">
+                <div class="flex flex-col">
+                  <span class="text-xs ${kpNear ? 'text-red-500 font-bold' : 'text-slate-600'}">${p.tmtKpNext ? formatDate(p.tmtKpNext).split(' pukul')[0] : '-'}</span>
+                  ${kpNear ? '<span class="text-[9px] bg-red-100 text-red-600 px-1 rounded w-fit mt-1">Segera</span>' : ''}
+                </div>
+              </td>
               <td class="py-4 text-right space-x-2">
-                <button class="p-2 text-slate-400 hover:bg-slate-50 rounded-lg transition-all"><i data-lucide="edit-2" class="w-4 h-4"></i></button>
-                <button class="p-2 text-red-400 hover:bg-red-50 rounded-lg transition-all"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
+                <button onclick="window.editPegawai('${p.nik}')" class="p-2 text-slate-400 hover:bg-slate-50 rounded-lg transition-all"><i data-lucide="edit-2" class="w-4 h-4"></i></button>
+                <button onclick="window.deletePegawai('${p.nik}')" class="p-2 text-red-400 hover:bg-red-50 rounded-lg transition-all"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
               </td>
             </tr>
-          `).join('')}
+          `}).join('')}
         </tbody>
       </table>
     `;
@@ -556,6 +598,108 @@ const renderAdminTab = (tab: string) => {
 };
 
 // --- GLOBAL ACTIONS ---
+(window as any).editPegawai = async (nik?: string) => {
+  const p = nik ? adminData.pegawai.find((item: any) => item.nik === nik) : null;
+  
+  const { value: formValues } = await Swal.fire({
+    title: nik ? 'Edit Pegawai' : 'Tambah Pegawai',
+    html: `
+      <div class="space-y-4 text-left p-2">
+        <div>
+          <label class="text-xs font-bold text-slate-400">NIK</label>
+          <input id="swal-nik" class="input-field mt-1" placeholder="NIK" value="${p?.nik || ''}" ${nik ? 'disabled' : ''}>
+        </div>
+        <div>
+          <label class="text-xs font-bold text-slate-400">Nama Lengkap</label>
+          <input id="swal-nama" class="input-field mt-1" placeholder="Nama Lengkap" value="${p?.nama || ''}">
+        </div>
+        <div>
+          <label class="text-xs font-bold text-slate-400">Jabatan</label>
+          <input id="swal-jabatan" class="input-field mt-1" placeholder="Jabatan" value="${p?.jabatan || ''}">
+        </div>
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <label class="text-xs font-bold text-slate-400">TMT KGB Berikutnya</label>
+            <input id="swal-kgb" type="date" class="input-field mt-1" value="${p?.tmtKgbNext ? new Date(p.tmtKgbNext).toISOString().split('T')[0] : ''}">
+          </div>
+          <div>
+            <label class="text-xs font-bold text-slate-400">TMT KP Berikutnya</label>
+            <input id="swal-kp" type="date" class="input-field mt-1" value="${p?.tmtKpNext ? new Date(p.tmtKpNext).toISOString().split('T')[0] : ''}">
+          </div>
+        </div>
+      </div>
+    `,
+    focusConfirm: false,
+    showCancelButton: true,
+    preConfirm: () => {
+      return {
+        nik: (document.getElementById('swal-nik') as HTMLInputElement).value,
+        nama: (document.getElementById('swal-nama') as HTMLInputElement).value,
+        jabatan: (document.getElementById('swal-jabatan') as HTMLInputElement).value,
+        tmtKgbNext: (document.getElementById('swal-kgb') as HTMLInputElement).value,
+        tmtKpNext: (document.getElementById('swal-kp') as HTMLInputElement).value
+      }
+    }
+  });
+
+  if (formValues) {
+    Swal.fire({ title: 'Saving...', didOpen: () => Swal.showLoading() });
+    try {
+      const res = await fetch(GAS_URL, {
+        method: 'POST',
+        body: JSON.stringify({
+          action: 'savePegawai',
+          ...formValues,
+          token: localStorage.getItem('moka_token')
+        })
+      });
+      const data = await res.json();
+      if (data.success) {
+        Swal.fire('Berhasil', 'Data pegawai disimpan', 'success');
+        loadAdminData();
+      } else {
+        Swal.fire('Gagal', data.message, 'error');
+      }
+    } catch (err) {
+      Swal.fire('Error', 'Gagal menyimpan data', 'error');
+    }
+  }
+};
+
+(window as any).deletePegawai = async (nik: string) => {
+  const result = await Swal.fire({
+    title: 'Hapus Pegawai?',
+    text: "Data yang dihapus tidak dapat dikembalikan!",
+    icon: 'warning',
+    showCancelButton: true,
+    confirmButtonColor: '#ef4444',
+    confirmButtonText: 'Ya, Hapus!'
+  });
+
+  if (result.isConfirmed) {
+    Swal.fire({ title: 'Deleting...', didOpen: () => Swal.showLoading() });
+    try {
+      const res = await fetch(GAS_URL, {
+        method: 'POST',
+        body: JSON.stringify({
+          action: 'deletePegawai',
+          nik,
+          token: localStorage.getItem('moka_token')
+        })
+      });
+      const data = await res.json();
+      if (data.success) {
+        Swal.fire('Terhapus', 'Data pegawai telah dihapus', 'success');
+        loadAdminData();
+      } else {
+        Swal.fire('Gagal', data.message, 'error');
+      }
+    } catch (err) {
+      Swal.fire('Error', 'Gagal menghapus data', 'error');
+    }
+  }
+};
+
 (window as any).updateStatus = async (ticket: string) => {
   const { value: status } = await Swal.fire({
     title: 'Update Status',
