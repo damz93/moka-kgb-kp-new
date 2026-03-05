@@ -3,7 +3,7 @@ import { createIcons, Home, Search, FilePlus, User, CheckCircle2, Clock, AlertCi
 import Swal from 'sweetalert2';
 
 // --- CONFIGURATION ---
-const GAS_URL = 'https://script.google.com/macros/s/AKfycbxtRrvx2gnUtopyDs238JNH8CO2baH2k2K-JbNRzY2XXxH4sEtYlzYiAqpn6YfyaXN7iQ/exec'; // User will replace this
+const GAS_URL = 'https://script.google.com/macros/s/AKfycbxhrCUKHLpYLeTYRFK4xMCaegKcehMWj2l7PoAVHIzByWvrWt7nPqbY6G0CN4yrd8v0tA/exec'; // User will replace this
 
 // --- STATE MANAGEMENT ---
 let currentPage = 'home';
