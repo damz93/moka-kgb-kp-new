@@ -519,6 +519,9 @@ const renderMonthlyList = () => {
   }
 
   container.innerHTML = `
+    <div class="mb-4 flex items-center justify-between">
+      <p class="text-xs font-bold text-slate-400 uppercase tracking-widest">Ditemukan ${filtered.length} Pengajuan</p>
+    </div>
     <table class="w-full text-left border-collapse">
       <thead>
         <tr class="text-slate-400 text-xs uppercase tracking-widest border-b border-white/20">
