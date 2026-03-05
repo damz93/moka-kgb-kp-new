@@ -6,7 +6,7 @@ import { Chart, registerables } from 'chart.js';
 Chart.register(...registerables);
 
 // --- CONFIGURATION ---
-const GAS_URL = 'YOUR_GOOGLE_APPS_SCRIPT_URL_HERE'; // User will replace this
+const GAS_URL = 'https://script.google.com/macros/s/AKfycbxtRrvx2gnUtopyDs238JNH8CO2baH2k2K-JbNRzY2XXxH4sEtYlzYiAqpn6YfyaXN7iQ/exec'; // User will replace this
 
 // --- STATE MANAGEMENT ---
 let currentPage = 'home';
