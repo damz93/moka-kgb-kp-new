@@ -81,6 +81,52 @@
   .admin-menu-item.active {
     @apply bg-blue-600 text-white shadow-lg shadow-blue-200 hover:bg-blue-600 hover:text-white;
   }
+
+  .admin-sidebar {
+    @apply fixed left-0 top-0 h-full w-64 bg-white border-r border-slate-200 z-50 transition-all duration-300;
+  }
+
+  .admin-main {
+    @apply ml-0 md:ml-64 min-h-screen bg-slate-50 transition-all duration-300;
+  }
+
+  @media (max-width: 768px) {
+    .admin-sidebar {
+      @apply h-auto w-full bottom-0 top-auto border-r-0 border-t flex flex-row justify-around items-center p-2;
+    }
+    .admin-sidebar .sidebar-header, .admin-sidebar .sidebar-footer {
+      @apply hidden;
+    }
+    .admin-sidebar .admin-menu-item {
+      @apply flex-col gap-1 p-2 text-[10px] w-auto;
+    }
+    .admin-sidebar .admin-menu-item i {
+      @apply w-5 h-5;
+    }
+    .admin-main {
+      @apply ml-0 pb-20;
+    }
+  }
+
+  .progress-bar {
+    @apply h-1.5 rounded-full bg-slate-100 overflow-hidden relative;
+  }
+
+  .progress-fill {
+    @apply h-full transition-all duration-500;
+  }
+
+  .avatar {
+    @apply w-10 h-10 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center font-bold text-sm border-2 border-white shadow-sm;
+  }
+
+  .status-badge {
+    @apply px-3 py-1 rounded-full text-[10px] font-bold uppercase border;
+  }
+
+  .status-active { @apply bg-green-50 text-green-600 border-green-100; }
+  .status-pending { @apply bg-amber-50 text-amber-600 border-amber-100; }
+  .status-overdue { @apply bg-red-50 text-red-600 border-red-100; }
 }
 
 /* Custom Animations */

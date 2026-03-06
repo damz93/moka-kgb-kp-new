@@ -42,7 +42,21 @@ const isNear = (dateStr: string, thresholdDays: number) => {
 
 const render = () => {
   const main = $('#main-content');
+  const navDesktop = $('nav.hidden.md\\:flex');
+  const navMobile = $('nav.md\\:hidden');
   if (!main) return;
+
+  // Show/Hide Main Navigation
+  if (currentPage === 'admin' || (currentPage === 'login' && isAdmin)) {
+    navDesktop?.classList.add('hidden');
+    navMobile?.classList.add('hidden');
+    main.className = 'min-h-screen'; // Reset classes for admin
+  } else {
+    navDesktop?.classList.remove('hidden');
+    navMobile?.classList.remove('flex'); // Lucide might have added flex
+    navMobile?.classList.add('md:hidden', 'flex'); 
+    main.className = 'pt-24 pb-32 md:pb-12 px-4 max-w-5xl mx-auto';
+  }
 
   // Update Navigation Active State
   $$('[data-page]').forEach(el => {
@@ -373,36 +387,74 @@ const renderLogin = (container: Element) => {
 
 const renderAdmin = (container: Element) => {
   container.innerHTML = `
-    <div class="animate-fade-in flex flex-col md:flex-row gap-8 items-start">
+    <div class="animate-fade-in">
       <!-- Sidebar -->
-      <aside class="w-full md:w-64 glass-card p-4 space-y-2 sticky top-24">
-        <div class="px-4 py-2 mb-4 border-b border-white/40">
-          <h2 class="font-bold text-blue-950">Admin Panel</h2>
-          <p class="text-[10px] text-slate-500 uppercase tracking-widest">MOKA KGB KP</p>
+      <aside class="admin-sidebar p-4 flex flex-col">
+        <div class="sidebar-header px-4 py-6 mb-6 border-b border-slate-100">
+          <div class="flex items-center gap-3">
+            <div class="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center text-white font-bold">S</div>
+            <h2 class="font-bold text-slate-800 text-lg">SIMPEG</h2>
+          </div>
         </div>
-        <button data-admin-tab="dashboard" class="admin-menu-item ${adminTab === 'dashboard' ? 'active' : ''}">
-          <i data-lucide="layout-dashboard" class="w-4 h-4"></i> Dashboard
-        </button>
-        <button data-admin-tab="pegawai" class="admin-menu-item ${adminTab === 'pegawai' ? 'active' : ''}">
-          <i data-lucide="users" class="w-4 h-4"></i> Data Pegawai
-        </button>
-        <button data-admin-tab="kp" class="admin-menu-item ${adminTab === 'kp' ? 'active' : ''}">
-          <i data-lucide="file-text" class="w-4 h-4"></i> Monitoring KP
-        </button>
-        <button data-admin-tab="kgb" class="admin-menu-item ${adminTab === 'kgb' ? 'active' : ''}">
-          <i data-lucide="file-text" class="w-4 h-4"></i> Monitoring KGB
-        </button>
-        <div class="pt-4 mt-4 border-t border-white/40">
+        
+        <nav class="flex-1 space-y-2 flex md:flex-col">
+          <button data-admin-tab="dashboard" class="admin-menu-item ${adminTab === 'dashboard' ? 'active' : ''}">
+            <i data-lucide="layout-dashboard"></i> <span>Dashboard</span>
+          </button>
+          <button data-admin-tab="pegawai" class="admin-menu-item ${adminTab === 'pegawai' ? 'active' : ''}">
+            <i data-lucide="users"></i> <span>Data Pegawai</span>
+          </button>
+          <button data-admin-tab="kp" class="admin-menu-item ${adminTab === 'kp' ? 'active' : ''}">
+            <i data-lucide="file-text"></i> <span>Monitoring KP</span>
+          </button>
+          <button data-admin-tab="kgb" class="admin-menu-item ${adminTab === 'kgb' ? 'active' : ''}">
+            <i data-lucide="file-text"></i> <span>Monitoring KGB</span>
+          </button>
+        </nav>
+
+        <div class="sidebar-footer pt-4 mt-4 border-t border-slate-100">
           <button id="btn-logout" class="admin-menu-item text-red-500 hover:bg-red-50 w-full">
-            <i data-lucide="log-out" class="w-4 h-4"></i> Keluar
+            <i data-lucide="log-out" class="w-4 h-4"></i> <span>Keluar</span>
           </button>
         </div>
       </aside>
 
-      <!-- Content Area -->
-      <div id="admin-content" class="flex-1 w-full space-y-8">
-        <div class="flex justify-center py-12"><div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div></div>
-      </div>
+      <!-- Main Content Area -->
+      <main class="admin-main">
+        <!-- Header -->
+        <header class="bg-white border-b border-slate-200 px-8 py-4 sticky top-0 z-40 flex justify-between items-center">
+          <div>
+            <h1 id="admin-page-title" class="text-xl font-bold text-slate-800">Dashboard</h1>
+            <p class="text-xs text-slate-400">Selamat datang di Sistem Monitoring Kepegawaian</p>
+          </div>
+          <div class="flex items-center gap-6">
+            <div class="hidden md:flex items-center bg-slate-100 rounded-full px-4 py-2 gap-2 w-64">
+              <i data-lucide="search" class="w-4 h-4 text-slate-400"></i>
+              <input type="text" placeholder="Cari pegawai..." class="bg-transparent border-none outline-none text-sm w-full">
+            </div>
+            <div class="flex items-center gap-4">
+              <button class="relative p-2 text-slate-400 hover:text-blue-600 transition-colors">
+                <i data-lucide="clock" class="w-5 h-5"></i>
+                <span class="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full border-2 border-white"></span>
+              </button>
+              <div class="h-8 w-px bg-slate-200"></div>
+              <div class="flex items-center gap-3">
+                <div class="text-right hidden sm:block">
+                  <p class="text-xs font-bold text-slate-800">Admin SIMPEG</p>
+                  <p class="text-[10px] text-slate-400">Administrator</p>
+                </div>
+                <div class="w-10 h-10 rounded-full bg-slate-200 flex items-center justify-center text-slate-500">
+                  <i data-lucide="user" class="w-6 h-6"></i>
+                </div>
+              </div>
+            </div>
+          </div>
+        </header>
+
+        <div id="admin-content" class="p-8">
+          <div class="flex justify-center py-12"><div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div></div>
+        </div>
+      </main>
     </div>
   `;
 
@@ -423,6 +475,11 @@ const renderAdmin = (container: Element) => {
       $$('[data-admin-tab]').forEach(b => b.classList.remove('active'));
       (e.currentTarget as HTMLElement).classList.add('active');
       
+      // Update Page Title
+      const titleMap: any = { 'dashboard': 'Dashboard', 'pegawai': 'Data Pegawai', 'kp': 'Monitoring KP', 'kgb': 'Monitoring KGB' };
+      const titleEl = $('#admin-page-title');
+      if (titleEl) titleEl.textContent = titleMap[tab] || 'Dashboard';
+
       renderAdminContent();
     });
   });
@@ -530,102 +587,201 @@ const renderMonthlyList = () => {
 const renderAdminDashboard = (container: HTMLElement) => {
   container.innerHTML = `
     <div class="animate-fade-in space-y-8">
-      <div>
-        <h2 class="text-2xl font-bold text-blue-950">Dashboard Overview</h2>
-        <p class="text-slate-500 text-sm">Ringkasan aktivitas pengajuan sistem</p>
-      </div>
-
-      <!-- Stats -->
-      <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <div class="glass-card p-6 text-center">
-          <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Total KGB</p>
-          <h4 class="text-3xl font-bold text-blue-600">${adminData.stats.kgb}</h4>
-        </div>
-        <div class="glass-card p-6 text-center">
-          <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Total KP</p>
-          <h4 class="text-3xl font-bold text-indigo-600">${adminData.stats.kp}</h4>
-        </div>
-        <div class="glass-card p-6 text-center">
-          <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Pending</p>
-          <h4 class="text-3xl font-bold text-amber-600">${adminData.stats.pending}</h4>
-        </div>
-        <div class="glass-card p-6 text-center">
-          <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Selesai</p>
-          <h4 class="text-3xl font-bold text-green-600">${adminData.stats.selesai}</h4>
-        </div>
-      </div>
-
-      <!-- List Pengajuan Bulanan -->
-      <div class="glass-card p-6 space-y-6">
-        <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-          <div class="flex items-center gap-2">
-            <i data-lucide="filter" class="w-5 h-5 text-blue-600"></i>
-            <h3 class="font-bold text-slate-700">List Pengajuan Bulanan</h3>
+      <!-- Stats Cards -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div class="bg-white p-6 rounded-3xl shadow-sm border border-slate-100 flex flex-col gap-4">
+          <div class="w-12 h-12 bg-blue-500 rounded-2xl flex items-center justify-center text-white">
+            <i data-lucide="users" class="w-6 h-6"></i>
           </div>
-          <div class="flex gap-2">
-            <select id="filter-month" class="input-field py-2 px-4 text-sm w-auto min-w-[140px]"></select>
-            <select id="filter-year" class="input-field py-2 px-4 text-sm w-auto"></select>
+          <div>
+            <p class="text-slate-400 text-xs font-medium">Total Pegawai</p>
+            <div class="flex items-baseline gap-2">
+              <h4 class="text-3xl font-bold text-slate-800">${adminData.pegawai.length}</h4>
+              <span class="text-[10px] text-green-500 font-bold">+2 bulan ini</span>
+            </div>
           </div>
         </div>
-        <div id="monthly-list-container" class="overflow-x-auto no-scrollbar min-h-[200px]"></div>
+        <div class="bg-white p-6 rounded-3xl shadow-sm border border-slate-100 flex flex-col gap-4 relative">
+          <div class="w-12 h-12 bg-indigo-500 rounded-2xl flex items-center justify-center text-white">
+            <i data-lucide="file-text" class="w-6 h-6"></i>
+          </div>
+          <div>
+            <p class="text-slate-400 text-xs font-medium">Jatuh Tempo Kenaikan Pangkat</p>
+            <div class="flex items-baseline gap-2">
+              <h4 class="text-3xl font-bold text-slate-800">${adminData.pegawai.filter((p: any) => isNear(p.tmtKpNext, 180)).length}</h4>
+              <span class="text-[10px] text-slate-400 font-medium">6 bulan ke depan</span>
+            </div>
+          </div>
+          <span class="absolute top-4 right-4 w-2 h-2 bg-red-500 rounded-full"></span>
+        </div>
+        <div class="bg-white p-6 rounded-3xl shadow-sm border border-slate-100 flex flex-col gap-4 relative">
+          <div class="w-12 h-12 bg-pink-500 rounded-2xl flex items-center justify-center text-white">
+            <i data-lucide="file-text" class="w-6 h-6"></i>
+          </div>
+          <div>
+            <p class="text-slate-400 text-xs font-medium">Jatuh Tempo Kenaikan Gaji Berkala</p>
+            <div class="flex items-baseline gap-2">
+              <h4 class="text-3xl font-bold text-slate-800">${adminData.pegawai.filter((p: any) => isNear(p.tmtKgbNext, 90)).length}</h4>
+              <span class="text-[10px] text-slate-400 font-medium">3 bulan ke depan</span>
+            </div>
+          </div>
+          <span class="absolute top-4 right-4 w-2 h-2 bg-red-500 rounded-full"></span>
+        </div>
+        <div class="bg-white p-6 rounded-3xl shadow-sm border border-slate-100 flex flex-col gap-4">
+          <div class="w-12 h-12 bg-emerald-500 rounded-2xl flex items-center justify-center text-white">
+            <i data-lucide="check-circle-2" class="w-6 h-6"></i>
+          </div>
+          <div>
+            <p class="text-slate-400 text-xs font-medium">Pegawai Aktif</p>
+            <div class="flex items-baseline gap-2">
+              <h4 class="text-3xl font-bold text-slate-800">${adminData.pegawai.length}</h4>
+              <span class="text-[10px] text-slate-400 font-medium">98% dari total</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="grid lg:grid-cols-3 gap-8">
+        <!-- Chart Section -->
+        <div class="lg:col-span-2 bg-white p-8 rounded-3xl shadow-sm border border-slate-100 space-y-8">
+          <div class="flex justify-between items-center">
+            <h3 class="font-bold text-slate-800">Distribusi Pegawai per Bidang</h3>
+            <select class="bg-slate-50 border-none text-xs font-bold text-slate-500 rounded-lg px-3 py-2 outline-none">
+              <option>Tahun 2024</option>
+            </select>
+          </div>
+          <div class="h-64 flex items-end justify-around gap-4 pt-4">
+            <div class="flex-1 flex flex-col items-center gap-3">
+              <div class="w-full bg-blue-500 rounded-t-lg" style="height: 60%"></div>
+              <span class="text-[10px] text-slate-400 font-bold">Umum</span>
+            </div>
+            <div class="flex-1 flex flex-col items-center gap-3">
+              <div class="w-full bg-indigo-500 rounded-t-lg" style="height: 60%"></div>
+              <span class="text-[10px] text-slate-400 font-bold">Perencanaan</span>
+            </div>
+            <div class="flex-1 flex flex-col items-center gap-3">
+              <div class="w-full bg-pink-500 rounded-t-lg" style="height: 80%"></div>
+              <span class="text-[10px] text-slate-400 font-bold">Sekretariat</span>
+            </div>
+            <div class="flex-1 flex flex-col items-center gap-3">
+              <div class="w-full bg-red-500 rounded-t-lg" style="height: 20%"></div>
+              <span class="text-[10px] text-slate-400 font-bold">Kepegawaian</span>
+            </div>
+            <div class="flex-1 flex flex-col items-center gap-3">
+              <div class="w-full bg-amber-500 rounded-t-lg" style="height: 20%"></div>
+              <span class="text-[10px] text-slate-400 font-bold">Keuangan</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Notifications Section -->
+        <div class="bg-white p-8 rounded-3xl shadow-sm border border-slate-100 space-y-6">
+          <h3 class="font-bold text-slate-800">Pemberitahuan Terkini</h3>
+          <div class="space-y-6">
+            <div class="flex gap-4">
+              <div class="w-10 h-10 bg-amber-50 rounded-xl flex items-center justify-center text-amber-500 shrink-0">
+                <i data-lucide="clock" class="w-5 h-5"></i>
+              </div>
+              <div class="space-y-1">
+                <p class="text-sm font-bold text-slate-800">KGB Mendatang</p>
+                <p class="text-xs text-slate-500 leading-relaxed">3 Pegawai di Bidang Keuangan akan jatuh tempo KGB bulan depan.</p>
+                <p class="text-[10px] font-bold text-blue-600 uppercase tracking-wider pt-1">Baru Saja</p>
+              </div>
+            </div>
+            <div class="flex gap-4">
+              <div class="w-10 h-10 bg-red-50 rounded-xl flex items-center justify-center text-red-500 shrink-0">
+                <i data-lucide="alert-circle" class="w-5 h-5"></i>
+              </div>
+              <div class="space-y-1">
+                <p class="text-sm font-bold text-slate-800">Berkas KP Kurang</p>
+                <p class="text-xs text-slate-500 leading-relaxed">Andi Wijaya belum mengunggah SK Jabatan terakhir.</p>
+                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider pt-1">2 Jam Yang Lalu</p>
+              </div>
+            </div>
+            <div class="flex gap-4">
+              <div class="w-10 h-10 bg-green-50 rounded-xl flex items-center justify-center text-green-500 shrink-0">
+                <i data-lucide="check-circle-2" class="w-5 h-5"></i>
+              </div>
+              <div class="space-y-1">
+                <p class="text-sm font-bold text-slate-800">KP Disetujui</p>
+                <p class="text-xs text-slate-500 leading-relaxed">Kenaikan pangkat Siti Aminah telah disetujui BKN.</p>
+                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider pt-1">Kemarin</p>
+              </div>
+            </div>
+          </div>
+          <button class="w-full py-3 text-blue-600 text-xs font-bold hover:bg-blue-50 rounded-xl transition-colors mt-4">Lihat Semua Aktivitas</button>
+        </div>
       </div>
     </div>
   `;
-  populateFilters();
-  renderMonthlyList();
 };
 
 const renderAdminPegawai = (container: HTMLElement) => {
   container.innerHTML = `
     <div class="animate-fade-in space-y-6">
-      <div class="flex justify-between items-center">
-        <div>
-          <h2 class="text-2xl font-bold text-blue-950">Data Pegawai</h2>
-          <p class="text-slate-500 text-sm">Manajemen master data pegawai instansi</p>
+      <!-- Filters & Actions -->
+      <div class="bg-white p-4 rounded-3xl shadow-sm border border-slate-100 flex flex-col md:flex-row justify-between items-center gap-4">
+        <div class="flex flex-1 w-full md:w-auto gap-4">
+          <div class="flex-1 flex items-center bg-slate-50 rounded-2xl px-4 py-3 gap-3 border border-slate-100">
+            <i data-lucide="search" class="w-4 h-4 text-slate-400"></i>
+            <input type="text" placeholder="Cari NIP atau Nama..." class="bg-transparent border-none outline-none text-sm w-full">
+          </div>
+          <div class="flex items-center bg-slate-50 rounded-2xl px-4 py-3 gap-3 border border-slate-100 min-w-[120px]">
+            <i data-lucide="filter" class="w-4 h-4 text-slate-400"></i>
+            <select class="bg-transparent border-none outline-none text-sm w-full font-medium text-slate-600">
+              <option>Semua</option>
+            </select>
+          </div>
         </div>
-        <button onclick="window.editPegawai()" class="bg-blue-600 text-white px-4 py-2 rounded-xl text-xs font-bold flex items-center gap-2 shadow-lg shadow-blue-200 hover:bg-blue-700 transition-all">
-          <i data-lucide="plus" class="w-4 h-4"></i> Tambah Pegawai
-        </button>
+        <div class="flex gap-3 w-full md:w-auto">
+          <button class="flex-1 md:flex-none flex items-center justify-center gap-2 px-6 py-3 bg-white border border-slate-200 rounded-2xl text-sm font-bold text-slate-600 hover:bg-slate-50 transition-all">
+            <i data-lucide="file-plus" class="w-4 h-4"></i> Export
+          </button>
+          <button onclick="window.editPegawai()" class="flex-1 md:flex-none flex items-center justify-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-2xl text-sm font-bold shadow-lg shadow-blue-200 hover:bg-blue-700 transition-all">
+            <i data-lucide="plus" class="w-4 h-4"></i> Tambah Pegawai
+          </button>
+        </div>
       </div>
 
-      <div class="glass-card overflow-hidden">
+      <div class="bg-white rounded-3xl shadow-sm border border-slate-100 overflow-hidden">
         <div class="overflow-x-auto no-scrollbar">
           <table class="w-full text-left border-collapse">
             <thead>
-              <tr class="text-slate-400 text-[10px] uppercase tracking-widest border-b border-white/20 bg-white/10">
-                <th class="p-4 font-bold">NIK / Nama</th>
-                <th class="p-4 font-bold">Jabatan</th>
-                <th class="p-4 font-bold">Jadwal KGB</th>
-                <th class="p-4 font-bold">Jadwal KP</th>
-                <th class="p-4 font-bold text-right">Aksi</th>
+              <tr class="text-slate-400 text-[10px] uppercase tracking-widest border-b border-slate-50 bg-slate-50/50">
+                <th class="p-6 font-bold">Pegawai</th>
+                <th class="p-6 font-bold">Jabatan / GOL</th>
+                <th class="p-6 font-bold">Bidang</th>
+                <th class="p-6 font-bold">Status</th>
+                <th class="p-6 font-bold text-right">Aksi</th>
               </tr>
             </thead>
             <tbody class="text-sm">
               ${adminData.pegawai.map((p: any) => {
-                const kgbNear = isNear(p.tmtKgbNext, 90);
-                const kpNear = isNear(p.tmtKpNext, 180);
+                const initials = p.nama.split(' ').map((n: any) => n[0]).join('').substring(0, 2).toUpperCase();
                 return `
-                <tr class="border-b border-white/10 hover:bg-white/10 transition-colors">
-                  <td class="p-4">
-                    <p class="font-bold text-slate-700">${p.nama}</p>
-                    <p class="text-[10px] font-mono text-slate-400">${p.nik}</p>
-                  </td>
-                  <td class="p-4 text-slate-500 text-xs">${p.jabatan}</td>
-                  <td class="p-4">
-                    <div class="flex flex-col">
-                      <span class="text-xs ${kgbNear ? 'text-red-500 font-bold' : 'text-slate-600'}">${p.tmtKgbNext ? formatDate(p.tmtKgbNext).split(' pukul')[0] : '-'}</span>
-                      ${kgbNear ? '<span class="text-[9px] bg-red-100 text-red-600 px-1 rounded w-fit mt-1 font-bold">Segera</span>' : ''}
+                <tr class="border-b border-slate-50 hover:bg-slate-50/50 transition-colors">
+                  <td class="p-6">
+                    <div class="flex items-center gap-4">
+                      <div class="avatar">${initials}</div>
+                      <div>
+                        <p class="font-bold text-slate-800">${p.nama}</p>
+                        <p class="text-[10px] font-mono text-slate-400">${p.nik}</p>
+                      </div>
                     </div>
                   </td>
-                  <td class="p-4">
-                    <div class="flex flex-col">
-                      <span class="text-xs ${kpNear ? 'text-red-500 font-bold' : 'text-slate-600'}">${p.tmtKpNext ? formatDate(p.tmtKpNext).split(' pukul')[0] : '-'}</span>
-                      ${kpNear ? '<span class="text-[9px] bg-red-100 text-red-600 px-1 rounded w-fit mt-1 font-bold">Segera</span>' : ''}
-                    </div>
+                  <td class="p-6">
+                    <p class="text-xs font-bold text-slate-600">${p.jabatan}</p>
+                    <p class="text-[10px] text-slate-400 mt-1">III/D</p>
                   </td>
-                  <td class="p-4 text-right space-x-1">
-                    <button onclick="window.editPegawai('${p.nik}')" class="p-2 text-blue-500 hover:bg-blue-50 rounded-lg transition-all"><i data-lucide="edit-2" class="w-4 h-4"></i></button>
-                    <button onclick="window.deletePegawai('${p.nik}')" class="p-2 text-red-400 hover:bg-red-50 rounded-lg transition-all"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
+                  <td class="p-6 text-slate-500 text-xs">Umum</td>
+                  <td class="p-6">
+                    <span class="status-badge status-active">Aktif</span>
+                  </td>
+                  <td class="p-6 text-right">
+                    <div class="flex justify-end gap-2">
+                      <button onclick="window.editPegawai('${p.nik}')" class="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-all"><i data-lucide="edit-2" class="w-4 h-4"></i></button>
+                      <button onclick="window.deletePegawai('${p.nik}')" class="p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-xl transition-all"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
+                    </div>
                   </td>
                 </tr>
               `}).join('')}
@@ -639,45 +795,108 @@ const renderAdminPegawai = (container: HTMLElement) => {
 
 const renderAdminMonitoring = (container: HTMLElement, type: 'kp' | 'kgb') => {
   const list = adminData[type];
+  const nearCount = adminData.pegawai.filter((p: any) => isNear(type === 'kp' ? p.tmtKpNext : p.tmtKgbNext, type === 'kp' ? 180 : 90)).length;
+  const overdueCount = adminData.pegawai.filter((p: any) => {
+    const date = type === 'kp' ? p.tmtKpNext : p.tmtKgbNext;
+    if (!date) return false;
+    return new Date(date) < new Date();
+  }).length;
+
+  const themeColor = type === 'kp' ? 'blue' : 'pink';
+  const themeBg = type === 'kp' ? 'bg-gradient-to-r from-blue-600 to-indigo-600' : 'bg-gradient-to-r from-pink-600 to-rose-600';
+
   container.innerHTML = `
-    <div class="animate-fade-in space-y-6">
-      <div>
-        <h2 class="text-2xl font-bold text-blue-950">Monitoring ${type.toUpperCase()}</h2>
-        <p class="text-slate-500 text-sm">Daftar pengajuan ${type.toUpperCase()} yang masuk ke sistem</p>
+    <div class="animate-fade-in space-y-8">
+      <!-- Header Banner -->
+      <div class="${themeBg} p-10 rounded-[40px] text-white flex flex-col md:flex-row justify-between items-center gap-8 shadow-xl shadow-${themeColor}-200">
+        <div class="space-y-2 text-center md:text-left">
+          <h2 class="text-3xl font-bold">Monitoring ${type === 'kp' ? 'Kenaikan Pangkat' : 'Kenaikan Gaji Berkala'}</h2>
+          <p class="text-white/80 text-sm max-w-md">Terdapat ${nearCount} pegawai menjelang ${type.toUpperCase()} dan ${overdueCount} pegawai melewati masa ${type.toUpperCase()}.</p>
+        </div>
+        <div class="flex gap-4">
+          <div class="bg-white/10 backdrop-blur-md p-4 rounded-3xl border border-white/20 text-center min-w-[100px]">
+            <p class="text-4xl font-bold">${adminData.pegawai.length}</p>
+            <p class="text-[10px] font-bold uppercase tracking-widest opacity-70">Total Pegawai</p>
+          </div>
+          <div class="bg-white/10 backdrop-blur-md p-4 rounded-3xl border border-white/20 text-center min-w-[100px]">
+            <p class="text-4xl font-bold">${overdueCount}</p>
+            <p class="text-[10px] font-bold uppercase tracking-widest opacity-70">Melewati Masa</p>
+          </div>
+          <div class="bg-white/10 backdrop-blur-md p-4 rounded-3xl border border-white/20 text-center min-w-[100px] text-yellow-300">
+            <p class="text-4xl font-bold">${nearCount}</p>
+            <p class="text-[10px] font-bold uppercase tracking-widest opacity-70">Menjelang ${type.toUpperCase()}</p>
+          </div>
+        </div>
       </div>
 
-      <div class="glass-card overflow-hidden">
-        <div class="overflow-x-auto no-scrollbar">
-          <table class="w-full text-left border-collapse">
-            <thead>
-              <tr class="text-slate-400 text-[10px] uppercase tracking-widest border-b border-white/20 bg-white/10">
-                <th class="p-4 font-bold">Tiket</th>
-                <th class="p-4 font-bold">Nama Pegawai</th>
-                <th class="p-4 font-bold">Tanggal Masuk</th>
-                <th class="p-4 font-bold">Status</th>
-                <th class="p-4 font-bold text-right">Aksi</th>
-              </tr>
-            </thead>
-            <tbody class="text-sm">
-              ${list.map((item: any) => `
-                <tr class="border-b border-white/10 hover:bg-white/10 transition-colors">
-                  <td class="p-4 font-mono font-bold text-blue-600 text-xs">${item.ticket}</td>
-                  <td class="p-4 font-bold text-slate-700">${item.nama}</td>
-                  <td class="p-4 text-slate-500 text-xs">${formatDate(item.timestamp).split(' pukul')[0]}</td>
-                  <td class="p-4">
-                    <span class="px-3 py-1 rounded-full text-[10px] font-bold uppercase bg-blue-50 text-blue-600 border border-blue-100">${item.status}</span>
-                  </td>
-                  <td class="p-4 text-right">
-                    <button onclick="window.updateStatus('${item.ticket}')" class="p-2 text-blue-500 hover:bg-blue-50 rounded-lg transition-all flex items-center gap-1 ml-auto">
-                      <i data-lucide="edit-2" class="w-4 h-4"></i>
-                      <span class="text-[10px] font-bold">Update</span>
-                    </button>
-                  </td>
+      <div class="space-y-6">
+        <div class="flex items-center gap-3">
+          <i data-lucide="clock" class="w-5 h-5 text-${themeColor}-600"></i>
+          <h3 class="font-bold text-slate-800">Jadwal ${type === 'kp' ? 'Kenaikan Pangkat' : 'Kenaikan Gaji Berkala'} Mendatang</h3>
+        </div>
+
+        <div class="bg-white rounded-3xl shadow-sm border border-slate-100 overflow-hidden">
+          <div class="overflow-x-auto no-scrollbar">
+            <table class="w-full text-left border-collapse">
+              <thead>
+                <tr class="text-slate-400 text-[10px] uppercase tracking-widest border-b border-slate-50 bg-slate-50/50">
+                  <th class="p-6 font-bold">Pegawai</th>
+                  <th class="p-6 font-bold">Golongan</th>
+                  <th class="p-6 font-bold">${type.toUpperCase()} Terakhir</th>
+                  <th class="p-6 font-bold">${type.toUpperCase()} Berikutnya</th>
+                  <th class="p-6 font-bold">Sisa Waktu</th>
+                  <th class="p-6 font-bold text-right">Aksi</th>
                 </tr>
-              `).join('')}
-            </tbody>
-          </table>
-          ${list.length === 0 ? '<p class="text-center py-12 text-slate-400">Belum ada data pengajuan.</p>' : ''}
+              </thead>
+              <tbody class="text-sm">
+                ${adminData.pegawai.map((p: any) => {
+                  const targetDate = type === 'kp' ? p.tmtKpNext : p.tmtKgbNext;
+                  if (!targetDate) return '';
+                  
+                  const initials = p.nama.split(' ').map((n: any) => n[0]).join('').substring(0, 2).toUpperCase();
+                  const isOverdue = new Date(targetDate) < new Date();
+                  const isSoon = isNear(targetDate, type === 'kp' ? 180 : 90);
+                  
+                  return `
+                  <tr class="border-b border-slate-50 hover:bg-slate-50/50 transition-colors">
+                    <td class="p-6">
+                      <div class="flex items-center gap-4">
+                        <div class="avatar">${initials}</div>
+                        <div>
+                          <p class="font-bold text-slate-800">${p.nama}</p>
+                          <p class="text-[10px] font-mono text-slate-400">${p.nik}</p>
+                        </div>
+                      </div>
+                    </td>
+                    <td class="p-6">
+                      <span class="px-2 py-1 bg-blue-50 text-blue-600 rounded-md text-[10px] font-bold">III/A</span>
+                    </td>
+                    <td class="p-6 text-slate-500 text-xs">01 Feb 2021</td>
+                    <td class="p-6">
+                      <p class="text-xs font-bold ${isOverdue ? 'text-red-600' : isSoon ? 'text-amber-600' : 'text-slate-800'}">
+                        ${formatDate(targetDate).split(' pukul')[0]}
+                      </p>
+                    </td>
+                    <td class="p-6">
+                      <div class="flex items-center gap-3">
+                        <div class="progress-bar flex-1">
+                          <div class="progress-fill ${isOverdue ? 'bg-red-500' : isSoon ? 'bg-amber-500' : 'bg-blue-500'}" style="width: ${isOverdue ? '100%' : '70%'}"></div>
+                        </div>
+                        <span class="text-[10px] font-bold uppercase ${isOverdue ? 'text-red-600' : isSoon ? 'text-amber-600' : 'text-slate-400'}">
+                          ${isOverdue ? 'Overdue' : isSoon ? 'Segera' : 'Aman'}
+                        </span>
+                      </div>
+                    </td>
+                    <td class="p-6 text-right">
+                      <button onclick="window.updateStatus('${p.nik}')" class="px-4 py-2 bg-red-600 text-white rounded-xl text-[10px] font-bold uppercase shadow-lg shadow-red-200 hover:bg-red-700 transition-all">
+                        Proses Berkas
+                      </button>
+                    </td>
+                  </tr>
+                `}).join('')}
+              </tbody>
+            </table>
+          </div>
         </div>
       </div>
     </div>
