@@ -1,5 +1,5 @@
 import './index.css';
-import { createIcons, Home, Search, FilePlus, User, CheckCircle2, Clock, AlertCircle, ChevronRight, LogOut, LayoutDashboard, Users, FileText, Settings, Plus, Edit2, Trash2, Filter } from 'lucide';
+import { createIcons, Home, Search, FilePlus, User, CheckCircle2, Clock, AlertCircle, ChevronRight, LogOut, LayoutDashboard, Users, FileText, Settings, Plus, Edit2, Trash2, Filter, PlusCircle, MessageCircle, Eye, RefreshCw } from 'lucide';
 import Swal from 'sweetalert2';
 
 // --- CONFIGURATION ---
