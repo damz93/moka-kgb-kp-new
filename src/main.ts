@@ -142,12 +142,12 @@ const renderCek = (container: Element) => {
     <div class="animate-fade-in max-w-2xl mx-auto space-y-8">
       <div class="text-center space-y-2">
         <h2 class="text-3xl font-bold text-blue-950">Cek Status Pengajuan</h2>
-        <p class="text-slate-500">Masukkan nomor tiket pengajuan Anda</p>
+        <p class="text-slate-500">Masukkan NIK Anda untuk melihat status pengajuan terbaru</p>
       </div>
       
       <div class="glass-card p-8 space-y-6">
         <div class="space-y-4">
-          <input type="text" id="ticket-input" class="input-field text-center text-2xl font-bold tracking-widest uppercase" placeholder="TKT-XXXXXX">
+          <input type="text" id="nik-input" class="input-field text-center text-2xl font-bold tracking-widest" placeholder="MASUKKAN 16 DIGIT NIK">
           <button id="btn-cek" class="btn-primary">Cari Pengajuan</button>
         </div>
       </div>
@@ -159,8 +159,9 @@ const renderCek = (container: Element) => {
   `;
 
   $('#btn-cek')?.addEventListener('click', async () => {
-    const ticket = (($('#ticket-input') as HTMLInputElement).value || '').trim();
-    if (!ticket) return Swal.fire('Error', 'Masukkan nomor tiket', 'error');
+    const nik = (($('#nik-input') as HTMLInputElement).value || '').trim();
+    if (!nik) return Swal.fire('Error', 'Masukkan NIK Anda', 'error');
+    if (nik.length < 10) return Swal.fire('Error', 'NIK tidak valid', 'error');
 
     const resultDiv = $('#cek-result');
     if (!resultDiv) return;
@@ -169,7 +170,7 @@ const renderCek = (container: Element) => {
     resultDiv.classList.remove('hidden');
 
     try {
-      const res = await fetch(`${GAS_URL}?action=checkTicket&ticket=${ticket}`);
+      const res = await fetch(`${GAS_URL}?action=checkByNIK&nik=${nik}`);
       const data = await res.json();
 
       if (!data.success) {
@@ -178,12 +179,12 @@ const renderCek = (container: Element) => {
             <div class="w-20 h-20 bg-red-100 text-red-600 rounded-full flex items-center justify-center mx-auto">
               <i data-lucide="alert-circle" class="w-10 h-10"></i>
             </div>
-            <h3 class="text-xl font-bold">Tiket Tidak Ditemukan</h3>
-            <p class="text-slate-500">Pastikan nomor tiket yang Anda masukkan benar.</p>
+            <h3 class="text-xl font-bold">Data Tidak Ditemukan</h3>
+            <p class="text-slate-500">Belum ada pengajuan aktif untuk NIK ${nik}.</p>
           </div>
         `;
       } else {
-        const { nama, nik, kategori, status, timeline, timestamp } = data.data;
+        const { nama, nik: resNik, kategori, status, timeline, timestamp } = data.data;
         const statusColors: any = {
           'Diajukan': 'bg-blue-100 text-blue-600',
           'Diverifikasi': 'bg-amber-100 text-amber-600',
@@ -198,7 +199,8 @@ const renderCek = (container: Element) => {
               <div>
                 <p class="text-xs font-bold text-slate-400 uppercase tracking-widest">Nama Pegawai</p>
                 <h3 class="text-2xl font-bold text-blue-950">${nama}</h3>
-                <p class="text-slate-500">NIK: ${nik} • Diajukan: ${formatDate(timestamp)}</p>
+                <p class="text-slate-500">NIK: ${resNik} • Kategori: <span class="font-bold text-blue-600">${kategori}</span></p>
+                <p class="text-xs text-slate-400 mt-1">Diajukan: ${formatDate(timestamp)}</p>
               </div>
               <span class="px-4 py-2 rounded-full text-sm font-bold ${statusColors[status] || 'bg-slate-100'}">${status}</span>
             </div>
@@ -799,13 +801,21 @@ const renderAdminPegawai = (container: HTMLElement) => {
 };
 
 const renderAdminMonitoring = (container: HTMLElement, type: 'kp' | 'kgb') => {
-  const list = adminData[type];
   const nearCount = adminData.pegawai.filter((p: any) => isNear(type === 'kp' ? p.tmtKpNext : p.tmtKgbNext, type === 'kp' ? 180 : 90)).length;
   const overdueCount = adminData.pegawai.filter((p: any) => {
     const date = type === 'kp' ? p.tmtKpNext : p.tmtKgbNext;
     if (!date) return false;
     return new Date(date) < new Date();
   }).length;
+
+  // Filter pegawai yang "Soon" atau "Overdue"
+  const filteredPegawai = adminData.pegawai.filter((p: any) => {
+    const targetDate = type === 'kp' ? p.tmtKpNext : p.tmtKgbNext;
+    if (!targetDate) return false;
+    const isOverdue = new Date(targetDate) < new Date();
+    const isSoon = isNear(targetDate, type === 'kp' ? 180 : 90);
+    return isOverdue || isSoon;
+  });
 
   const themeColor = type === 'kp' ? 'blue' : 'pink';
   const themeBg = type === 'kp' ? 'bg-gradient-to-r from-blue-600 to-indigo-600' : 'bg-gradient-to-r from-pink-600 to-rose-600';
@@ -835,9 +845,12 @@ const renderAdminMonitoring = (container: HTMLElement, type: 'kp' | 'kgb') => {
       </div>
 
       <div class="space-y-6">
-        <div class="flex items-center gap-3">
-          <i data-lucide="clock" class="w-5 h-5 text-${themeColor}-600"></i>
-          <h3 class="font-bold text-slate-800">Jadwal ${type === 'kp' ? 'Kenaikan Pangkat' : 'Kenaikan Gaji Berkala'} Mendatang</h3>
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-3">
+            <i data-lucide="clock" class="w-5 h-5 text-${themeColor}-600"></i>
+            <h3 class="font-bold text-slate-800">Daftar Pegawai Jatuh Tempo ${type.toUpperCase()}</h3>
+          </div>
+          <p class="text-xs text-slate-400 font-medium">Menampilkan ${filteredPegawai.length} pegawai yang memerlukan perhatian</p>
         </div>
 
         <div class="bg-white rounded-3xl shadow-sm border border-slate-100 overflow-hidden">
@@ -846,21 +859,27 @@ const renderAdminMonitoring = (container: HTMLElement, type: 'kp' | 'kgb') => {
               <thead>
                 <tr class="text-slate-400 text-[10px] uppercase tracking-widest border-b border-slate-50 bg-slate-50/50">
                   <th class="p-6 font-bold">Pegawai</th>
-                  <th class="p-6 font-bold">Golongan</th>
-                  <th class="p-6 font-bold">${type.toUpperCase()} Terakhir</th>
+                  <th class="p-6 font-bold">Jabatan</th>
                   <th class="p-6 font-bold">${type.toUpperCase()} Berikutnya</th>
+                  <th class="p-6 font-bold">Status Pengajuan</th>
                   <th class="p-6 font-bold">Sisa Waktu</th>
                   <th class="p-6 font-bold text-right">Aksi</th>
                 </tr>
               </thead>
               <tbody class="text-sm">
-                ${adminData.pegawai.map((p: any) => {
+                ${filteredPegawai.length === 0 ? `
+                  <tr>
+                    <td colspan="6" class="p-12 text-center text-slate-400">Tidak ada pegawai yang mendekati jatuh tempo ${type.toUpperCase()}.</td>
+                  </tr>
+                ` : filteredPegawai.map((p: any) => {
                   const targetDate = type === 'kp' ? p.tmtKpNext : p.tmtKgbNext;
-                  if (!targetDate) return '';
-                  
                   const initials = p.nama.split(' ').map((n: any) => n[0]).join('').substring(0, 2).toUpperCase();
                   const isOverdue = new Date(targetDate) < new Date();
                   const isSoon = isNear(targetDate, type === 'kp' ? 180 : 90);
+                  
+                  // Cari pengajuan aktif
+                  const requests = type === 'kp' ? adminData.kp : adminData.kgb;
+                  const activeRequest = requests.find((r: any) => r.nik.toString() === p.nik.toString());
                   
                   return `
                   <tr class="border-b border-slate-50 hover:bg-slate-50/50 transition-colors">
@@ -874,13 +893,23 @@ const renderAdminMonitoring = (container: HTMLElement, type: 'kp' | 'kgb') => {
                       </div>
                     </td>
                     <td class="p-6">
-                      <span class="px-2 py-1 bg-blue-50 text-blue-600 rounded-md text-[10px] font-bold">III/A</span>
+                      <p class="text-xs font-bold text-slate-600">${p.jabatan}</p>
                     </td>
-                    <td class="p-6 text-slate-500 text-xs">01 Feb 2021</td>
                     <td class="p-6">
                       <p class="text-xs font-bold ${isOverdue ? 'text-red-600' : isSoon ? 'text-amber-600' : 'text-slate-800'}">
                         ${formatDate(targetDate).split(' pukul')[0]}
                       </p>
+                    </td>
+                    <td class="p-6">
+                      ${activeRequest ? `
+                        <span class="px-2 py-1 bg-green-50 text-green-600 rounded-md text-[10px] font-bold uppercase">
+                          ${activeRequest.status}
+                        </span>
+                      ` : `
+                        <span class="px-2 py-1 bg-slate-50 text-slate-400 rounded-md text-[10px] font-bold uppercase">
+                          Belum Diajukan
+                        </span>
+                      `}
                     </td>
                     <td class="p-6">
                       <div class="flex items-center gap-3">
@@ -893,9 +922,15 @@ const renderAdminMonitoring = (container: HTMLElement, type: 'kp' | 'kgb') => {
                       </div>
                     </td>
                     <td class="p-6 text-right">
-                      <button onclick="window.updateStatus('${p.nik}')" class="px-4 py-2 bg-red-600 text-white rounded-xl text-[10px] font-bold uppercase shadow-lg shadow-red-200 hover:bg-red-700 transition-all">
-                        Proses Berkas
-                      </button>
+                      ${activeRequest ? `
+                        <button onclick="window.updateStatus('${activeRequest.ticket}')" class="px-4 py-2 bg-blue-600 text-white rounded-xl text-[10px] font-bold uppercase shadow-lg shadow-blue-200 hover:bg-blue-700 transition-all">
+                          Update Status
+                        </button>
+                      ` : `
+                        <button onclick="window.editPegawai('${p.nik}')" class="px-4 py-2 bg-slate-100 text-slate-600 rounded-xl text-[10px] font-bold uppercase hover:bg-slate-200 transition-all">
+                          Cek Data
+                        </button>
+                      `}
                     </td>
                   </tr>
                 `}).join('')}
