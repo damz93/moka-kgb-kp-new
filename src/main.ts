@@ -42,8 +42,8 @@ const isNear = (dateStr: string, thresholdDays: number) => {
 
 const render = () => {
   const main = $('#main-content');
-  const navDesktop = $('nav.hidden.md\\:flex');
-  const navMobile = $('nav.md\\:hidden');
+  const navDesktop = $('#nav-desktop');
+  const navMobile = $('#nav-mobile');
   if (!main) return;
 
   // If logged in as admin, force admin page if on home/login
@@ -53,13 +53,13 @@ const render = () => {
 
   // Show/Hide Main Navigation
   if (isAdmin || currentPage === 'admin') {
-    navDesktop?.classList.add('hidden');
-    navMobile?.classList.add('hidden');
+    if (navDesktop) (navDesktop as HTMLElement).style.display = 'none';
+    if (navMobile) (navMobile as HTMLElement).style.display = 'none';
     main.className = 'min-h-screen'; // Reset classes for admin
   } else {
-    navDesktop?.classList.remove('hidden');
-    navMobile?.classList.remove('flex'); // Lucide might have added flex
-    navMobile?.classList.add('md:hidden', 'flex'); 
+    // Reset display styles to let Tailwind classes work
+    if (navDesktop) (navDesktop as HTMLElement).style.display = '';
+    if (navMobile) (navMobile as HTMLElement).style.display = '';
     main.className = 'pt-24 pb-32 md:pb-12 px-4 max-w-5xl mx-auto';
   }
 
