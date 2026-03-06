@@ -922,15 +922,23 @@ const renderAdminMonitoring = (container: HTMLElement, type: 'kp' | 'kgb') => {
                       </div>
                     </td>
                     <td class="p-6 text-right">
-                      ${activeRequest ? `
-                        <button onclick="window.updateStatus('${activeRequest.ticket}')" class="px-4 py-2 bg-blue-600 text-white rounded-xl text-[10px] font-bold uppercase shadow-lg shadow-blue-200 hover:bg-blue-700 transition-all">
-                          Update Status
+                      <div class="flex justify-end gap-2">
+                        ${activeRequest ? `
+                          <button onclick="window.updateStatus('${activeRequest.ticket}')" class="p-2 text-blue-600 hover:bg-blue-50 rounded-xl transition-all" title="Update Status">
+                            <i data-lucide="refresh-cw" class="w-4 h-4"></i>
+                          </button>
+                        ` : `
+                          <button onclick="window.autoCreateRequest('${p.nik}', '${type}')" class="p-2 text-emerald-600 hover:bg-emerald-50 rounded-xl transition-all" title="Buat Pengajuan Otomatis">
+                            <i data-lucide="plus-circle" class="w-4 h-4"></i>
+                          </button>
+                        `}
+                        <button onclick="window.shareToWA('${p.nik}', '${type}')" class="p-2 text-green-600 hover:bg-green-50 rounded-xl transition-all" title="Share ke WhatsApp">
+                          <i data-lucide="message-circle" class="w-4 h-4"></i>
                         </button>
-                      ` : `
-                        <button onclick="window.editPegawai('${p.nik}')" class="px-4 py-2 bg-slate-100 text-slate-600 rounded-xl text-[10px] font-bold uppercase hover:bg-slate-200 transition-all">
-                          Cek Data
+                        <button onclick="window.editPegawai('${p.nik}')" class="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-all" title="Cek Data">
+                          <i data-lucide="eye" class="w-4 h-4"></i>
                         </button>
-                      `}
+                      </div>
                     </td>
                   </tr>
                 `}).join('')}
@@ -941,9 +949,90 @@ const renderAdminMonitoring = (container: HTMLElement, type: 'kp' | 'kgb') => {
       </div>
     </div>
   `;
+  createIcons({ icons: { Clock, PlusCircle, MessageCircle, Eye, RefreshCw } });
 };
 
 // --- GLOBAL ACTIONS ---
+(window as any).autoCreateRequest = async (nik: string, type: 'kp' | 'kgb') => {
+  const p = adminData.pegawai.find((item: any) => item.nik.toString() === nik.toString());
+  if (!p) return;
+
+  const result = await Swal.fire({
+    title: 'Buat Pengajuan Otomatis?',
+    text: `Sistem akan membuat draf pengajuan ${type.toUpperCase()} untuk ${p.nama}. Pegawai dapat melacak statusnya menggunakan NIK.`,
+    icon: 'question',
+    showCancelButton: true,
+    confirmButtonText: 'Ya, Buat!',
+    cancelButtonText: 'Batal'
+  });
+
+  if (result.isConfirmed) {
+    Swal.fire({ title: 'Memproses...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+    try {
+      const res = await fetch(GAS_URL, {
+        method: 'POST',
+        body: JSON.stringify({
+          action: 'autoCreateRequest',
+          nik: p.nik,
+          nama: p.nama,
+          kategori: type.toUpperCase(),
+          token: localStorage.getItem('moka_token')
+        })
+      });
+      const data = await res.json();
+      if (data.success) {
+        await Swal.fire('Berhasil', `Pengajuan ${type.toUpperCase()} berhasil dibuat.`, 'success');
+        loadAdminData();
+      } else {
+        Swal.fire('Gagal', data.message || 'Terjadi kesalahan', 'error');
+      }
+    } catch (err) {
+      Swal.fire('Error', 'Gagal menghubungi server', 'error');
+    }
+  }
+};
+
+(window as any).shareToWA = (nik: string, type: 'kp' | 'kgb') => {
+  const p = adminData.pegawai.find((item: any) => item.nik.toString() === nik.toString());
+  if (!p) return;
+
+  const targetDate = type === 'kp' ? p.tmtKpNext : p.tmtKgbNext;
+  const diffTime = Math.abs(new Date().getTime() - new Date(targetDate).getTime());
+  const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+  const isOverdue = new Date(targetDate) < new Date();
+
+  const typeName = type === 'kp' ? 'Kenaikan Pangkat' : 'Kenaikan Gaji Berkala';
+  let message = '';
+  
+  if (isOverdue) {
+    message = `Halo ${p.nama}, Anda telah melewati TMT ${typeName} selama ${diffDays} hari. Mohon segera melakukan pengajuan di web atau japri admin untuk proses lebih lanjut. Terima kasih.`;
+  } else {
+    message = `Halo ${p.nama}, TMT ${typeName} Anda akan jatuh tempo dalam ${diffDays} hari lagi (${formatDate(targetDate).split(' pukul')[0]}). Mohon segera persiapkan berkas dan lakukan pengajuan di web. Terima kasih.`;
+  }
+
+  const encodedMsg = encodeURIComponent(message);
+  // Asumsi nomor WA belum ada di data pegawai, maka arahkan ke chat tanpa nomor atau minta input
+  Swal.fire({
+    title: 'Kirim Pengingat WA',
+    input: 'text',
+    inputLabel: 'Nomor WhatsApp Pegawai (Gunakan format 628xxx)',
+    inputValue: '628',
+    showCancelButton: true,
+    confirmButtonText: 'Kirim Sekarang',
+    preConfirm: (phone) => {
+      if (!phone || phone.length < 10) {
+        Swal.showValidationMessage('Masukkan nomor WA yang valid');
+        return false;
+      }
+      return phone;
+    }
+  }).then((result) => {
+    if (result.isConfirmed) {
+      window.open(`https://wa.me/${result.value}?text=${encodedMsg}`, '_blank');
+    }
+  });
+};
+
 (window as any).editPegawai = async (nik?: string) => {
   // Gunakan toString() untuk memastikan perbandingan NIK akurat (string vs number)
   const p = nik ? adminData.pegawai.find((item: any) => item.nik.toString() === nik.toString()) : null;
