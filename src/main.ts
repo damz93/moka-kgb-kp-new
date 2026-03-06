@@ -9,6 +9,7 @@ const GAS_URL = 'https://script.google.com/macros/s/AKfycbxhrCUKHLpYLeTYRFK4xMCa
 let currentPage = 'home';
 let isAdmin = !!localStorage.getItem('moka_token');
 let adminData: any = null;
+let adminTab = 'dashboard';
 
 // --- UTILS ---
 const $ = (selector: string) => document.querySelector(selector);
@@ -372,64 +373,35 @@ const renderLogin = (container: Element) => {
 
 const renderAdmin = (container: Element) => {
   container.innerHTML = `
-    <div class="animate-fade-in space-y-8">
-      <div class="flex justify-between items-center">
-        <div>
-          <h2 class="text-3xl font-bold text-blue-950">Admin Dashboard</h2>
-          <p class="text-slate-500">Monitoring pengajuan & data pegawai</p>
+    <div class="animate-fade-in flex flex-col md:flex-row gap-8 items-start">
+      <!-- Sidebar -->
+      <aside class="w-full md:w-64 glass-card p-4 space-y-2 sticky top-24">
+        <div class="px-4 py-2 mb-4 border-b border-white/40">
+          <h2 class="font-bold text-blue-950">Admin Panel</h2>
+          <p class="text-[10px] text-slate-500 uppercase tracking-widest">MOKA KGB KP</p>
         </div>
-        <button id="btn-logout" class="flex items-center gap-2 text-red-500 font-bold hover:bg-red-50 px-4 py-2 rounded-xl transition-all">
-          <i data-lucide="log-out" class="w-5 h-5"></i> Keluar
+        <button data-admin-tab="dashboard" class="admin-menu-item ${adminTab === 'dashboard' ? 'active' : ''}">
+          <i data-lucide="layout-dashboard" class="w-4 h-4"></i> Dashboard
         </button>
-      </div>
+        <button data-admin-tab="pegawai" class="admin-menu-item ${adminTab === 'pegawai' ? 'active' : ''}">
+          <i data-lucide="users" class="w-4 h-4"></i> Data Pegawai
+        </button>
+        <button data-admin-tab="kp" class="admin-menu-item ${adminTab === 'kp' ? 'active' : ''}">
+          <i data-lucide="file-text" class="w-4 h-4"></i> Monitoring KP
+        </button>
+        <button data-admin-tab="kgb" class="admin-menu-item ${adminTab === 'kgb' ? 'active' : ''}">
+          <i data-lucide="file-text" class="w-4 h-4"></i> Monitoring KGB
+        </button>
+        <div class="pt-4 mt-4 border-t border-white/40">
+          <button id="btn-logout" class="admin-menu-item text-red-500 hover:bg-red-50 w-full">
+            <i data-lucide="log-out" class="w-4 h-4"></i> Keluar
+          </button>
+        </div>
+      </aside>
 
-      <!-- Stats -->
-      <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <div class="glass-card p-6 text-center">
-          <p class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">Total KGB</p>
-          <h4 class="text-3xl font-bold text-blue-600" id="stat-kgb">0</h4>
-        </div>
-        <div class="glass-card p-6 text-center">
-          <p class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">Total KP</p>
-          <h4 class="text-3xl font-bold text-indigo-600" id="stat-kp">0</h4>
-        </div>
-        <div class="glass-card p-6 text-center">
-          <p class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">Pending</p>
-          <h4 class="text-3xl font-bold text-amber-600" id="stat-pending">0</h4>
-        </div>
-        <div class="glass-card p-6 text-center">
-          <p class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">Selesai</p>
-          <h4 class="text-3xl font-bold text-green-600" id="stat-selesai">0</h4>
-        </div>
-      </div>
-
-      <!-- List Pengajuan Bulanan -->
-      <div class="glass-card p-6 space-y-6">
-        <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-          <div class="flex items-center gap-2">
-            <i data-lucide="filter" class="w-5 h-5 text-blue-600"></i>
-            <h3 class="font-bold text-slate-700">List Pengajuan Bulanan</h3>
-          </div>
-          <div class="flex gap-2">
-            <select id="filter-month" class="input-field py-2 px-4 text-sm w-auto min-w-[140px]"></select>
-            <select id="filter-year" class="input-field py-2 px-4 text-sm w-auto"></select>
-          </div>
-        </div>
-        <div id="monthly-list-container" class="overflow-x-auto no-scrollbar min-h-[200px]">
-          <div class="flex justify-center py-12"><div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div></div>
-        </div>
-      </div>
-
-      <!-- Tabs -->
-      <div class="glass-card overflow-hidden">
-        <div class="flex border-b border-white/40 bg-white/20">
-          <button class="admin-tab active px-6 py-4 font-bold text-sm" data-tab="kgb">Data KGB</button>
-          <button class="admin-tab px-6 py-4 font-bold text-sm" data-tab="kp">Data KP</button>
-          <button class="admin-tab px-6 py-4 font-bold text-sm" data-tab="pegawai">Master Pegawai</button>
-        </div>
-        <div id="admin-tab-content" class="p-6 overflow-x-auto no-scrollbar">
-          <div class="flex justify-center py-12"><div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div></div>
-        </div>
+      <!-- Content Area -->
+      <div id="admin-content" class="flex-1 w-full space-y-8">
+        <div class="flex justify-center py-12"><div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div></div>
       </div>
     </div>
   `;
@@ -439,6 +411,20 @@ const renderAdmin = (container: Element) => {
     isAdmin = false;
     currentPage = 'home';
     render();
+  });
+
+  // Sidebar Tab Events
+  $$('[data-admin-tab]').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      const tab = (e.currentTarget as HTMLElement).getAttribute('data-admin-tab') || 'dashboard';
+      adminTab = tab;
+      
+      // Update active state in UI
+      $$('[data-admin-tab]').forEach(b => b.classList.remove('active'));
+      (e.currentTarget as HTMLElement).classList.add('active');
+      
+      renderAdminContent();
+    });
   });
 
   loadAdminData();
@@ -451,32 +437,24 @@ const loadAdminData = async () => {
     if (!data.success) return renderLogin($('#main-content')!);
 
     adminData = data.data;
-    
-    // Update Stats
-    if ($('#stat-kgb')) $('#stat-kgb')!.textContent = adminData.stats.kgb;
-    if ($('#stat-kp')) $('#stat-kp')!.textContent = adminData.stats.kp;
-    if ($('#stat-pending')) $('#stat-pending')!.textContent = adminData.stats.pending;
-    if ($('#stat-selesai')) $('#stat-selesai')!.textContent = adminData.stats.selesai;
-
-    // Initial Monthly List
-    populateFilters();
-    renderMonthlyList();
-
-    // Initial Tab
-    renderAdminTab('kgb');
-
-    // Tab Events
-    $$('.admin-tab').forEach(btn => {
-      btn.addEventListener('click', (e) => {
-        $$('.admin-tab').forEach(b => b.classList.remove('active', 'text-blue-600', 'border-b-2', 'border-blue-600'));
-        (e.target as HTMLElement).classList.add('active', 'text-blue-600', 'border-b-2', 'border-blue-600');
-        renderAdminTab((e.target as HTMLElement).getAttribute('data-tab') || 'kgb');
-      });
-    });
-
+    renderAdminContent();
   } catch (err) {
     console.error(err);
   }
+};
+
+const renderAdminContent = () => {
+  const container = $('#admin-content');
+  if (!container) return;
+
+  switch (adminTab) {
+    case 'dashboard': renderAdminDashboard(container as HTMLElement); break;
+    case 'pegawai': renderAdminPegawai(container as HTMLElement); break;
+    case 'kp': renderAdminMonitoring(container as HTMLElement, 'kp'); break;
+    case 'kgb': renderAdminMonitoring(container as HTMLElement, 'kgb'); break;
+  }
+
+  createIcons({ icons: { LayoutDashboard, Users, FileText, LogOut, Plus, Edit2, Trash2, Filter, CheckCircle2, Clock, AlertCircle } });
 };
 
 const populateFilters = () => {
@@ -549,88 +527,161 @@ const renderMonthlyList = () => {
   `;
 };
 
-const renderAdminTab = (tab: string) => {
-  const content = $('#admin-tab-content');
-  if (!content) return;
-
-  if (tab === 'kgb' || tab === 'kp') {
-    const list = adminData[tab];
-    content.innerHTML = `
-      <table class="w-full text-left border-collapse">
-        <thead>
-          <tr class="text-slate-400 text-xs uppercase tracking-widest border-b border-white/20">
-            <th class="pb-4 font-bold">Tiket</th>
-            <th class="pb-4 font-bold">Nama</th>
-            <th class="pb-4 font-bold">Status</th>
-            <th class="pb-4 font-bold text-right">Aksi</th>
-          </tr>
-        </thead>
-        <tbody class="text-sm">
-          ${list.map((item: any) => `
-            <tr class="border-b border-white/10 hover:bg-white/10 transition-colors">
-              <td class="py-4 font-mono font-bold text-blue-600">${item.ticket}</td>
-              <td class="py-4 font-bold text-slate-700">${item.nama}</td>
-              <td class="py-4">
-                <span class="px-3 py-1 rounded-full text-[10px] font-bold uppercase bg-blue-50 text-blue-600">${item.status}</span>
-              </td>
-              <td class="py-4 text-right">
-                <button onclick="window.updateStatus('${item.ticket}')" class="p-2 text-blue-500 hover:bg-blue-50 rounded-lg transition-all"><i data-lucide="edit-2" class="w-4 h-4"></i></button>
-              </td>
-            </tr>
-          `).join('')}
-        </tbody>
-      </table>
-    `;
-  } else if (tab === 'pegawai') {
-    content.innerHTML = `
-      <div class="flex justify-between mb-4">
-        <h4 class="font-bold text-slate-700">Master Pegawai</h4>
-        <button onclick="window.editPegawai()" class="bg-blue-600 text-white px-4 py-2 rounded-xl text-xs font-bold flex items-center gap-2"><i data-lucide="plus" class="w-4 h-4"></i> Tambah Pegawai</button>
+const renderAdminDashboard = (container: HTMLElement) => {
+  container.innerHTML = `
+    <div class="animate-fade-in space-y-8">
+      <div>
+        <h2 class="text-2xl font-bold text-blue-950">Dashboard Overview</h2>
+        <p class="text-slate-500 text-sm">Ringkasan aktivitas pengajuan sistem</p>
       </div>
-      <table class="w-full text-left border-collapse">
-        <thead>
-          <tr class="text-slate-400 text-xs uppercase tracking-widest border-b border-white/20">
-            <th class="pb-4 font-bold">NIK / Nama</th>
-            <th class="pb-4 font-bold">Jabatan</th>
-            <th class="pb-4 font-bold">Jadwal KGB</th>
-            <th class="pb-4 font-bold">Jadwal KP</th>
-            <th class="pb-4 font-bold text-right">Aksi</th>
-          </tr>
-        </thead>
-        <tbody class="text-sm">
-          ${adminData.pegawai.map((p: any) => {
-            const kgbNear = isNear(p.tmtKgbNext, 90); // 3 months
-            const kpNear = isNear(p.tmtKpNext, 180); // 6 months
-            return `
-            <tr class="border-b border-white/10 hover:bg-white/10 transition-colors">
-              <td class="py-4">
-                <p class="font-bold text-slate-700">${p.nama}</p>
-                <p class="text-xs font-mono text-slate-400">${p.nik}</p>
-              </td>
-              <td class="py-4 text-slate-500">${p.jabatan}</td>
-              <td class="py-4">
-                <div class="flex flex-col">
-                  <span class="text-xs ${kgbNear ? 'text-red-500 font-bold' : 'text-slate-600'}">${p.tmtKgbNext ? formatDate(p.tmtKgbNext).split(' pukul')[0] : '-'}</span>
-                  ${kgbNear ? '<span class="text-[9px] bg-red-100 text-red-600 px-1 rounded w-fit mt-1">Segera</span>' : ''}
-                </div>
-              </td>
-              <td class="py-4">
-                <div class="flex flex-col">
-                  <span class="text-xs ${kpNear ? 'text-red-500 font-bold' : 'text-slate-600'}">${p.tmtKpNext ? formatDate(p.tmtKpNext).split(' pukul')[0] : '-'}</span>
-                  ${kpNear ? '<span class="text-[9px] bg-red-100 text-red-600 px-1 rounded w-fit mt-1">Segera</span>' : ''}
-                </div>
-              </td>
-              <td class="py-4 text-right space-x-2">
-                <button onclick="window.editPegawai('${p.nik}')" class="p-2 text-slate-400 hover:bg-slate-50 rounded-lg transition-all"><i data-lucide="edit-2" class="w-4 h-4"></i></button>
-                <button onclick="window.deletePegawai('${p.nik}')" class="p-2 text-red-400 hover:bg-red-50 rounded-lg transition-all"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
-              </td>
-            </tr>
-          `}).join('')}
-        </tbody>
-      </table>
-    `;
-  }
-  createIcons({ icons: { Edit2, Trash2, Plus } });
+
+      <!-- Stats -->
+      <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        <div class="glass-card p-6 text-center">
+          <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Total KGB</p>
+          <h4 class="text-3xl font-bold text-blue-600">${adminData.stats.kgb}</h4>
+        </div>
+        <div class="glass-card p-6 text-center">
+          <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Total KP</p>
+          <h4 class="text-3xl font-bold text-indigo-600">${adminData.stats.kp}</h4>
+        </div>
+        <div class="glass-card p-6 text-center">
+          <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Pending</p>
+          <h4 class="text-3xl font-bold text-amber-600">${adminData.stats.pending}</h4>
+        </div>
+        <div class="glass-card p-6 text-center">
+          <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Selesai</p>
+          <h4 class="text-3xl font-bold text-green-600">${adminData.stats.selesai}</h4>
+        </div>
+      </div>
+
+      <!-- List Pengajuan Bulanan -->
+      <div class="glass-card p-6 space-y-6">
+        <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+          <div class="flex items-center gap-2">
+            <i data-lucide="filter" class="w-5 h-5 text-blue-600"></i>
+            <h3 class="font-bold text-slate-700">List Pengajuan Bulanan</h3>
+          </div>
+          <div class="flex gap-2">
+            <select id="filter-month" class="input-field py-2 px-4 text-sm w-auto min-w-[140px]"></select>
+            <select id="filter-year" class="input-field py-2 px-4 text-sm w-auto"></select>
+          </div>
+        </div>
+        <div id="monthly-list-container" class="overflow-x-auto no-scrollbar min-h-[200px]"></div>
+      </div>
+    </div>
+  `;
+  populateFilters();
+  renderMonthlyList();
+};
+
+const renderAdminPegawai = (container: HTMLElement) => {
+  container.innerHTML = `
+    <div class="animate-fade-in space-y-6">
+      <div class="flex justify-between items-center">
+        <div>
+          <h2 class="text-2xl font-bold text-blue-950">Data Pegawai</h2>
+          <p class="text-slate-500 text-sm">Manajemen master data pegawai instansi</p>
+        </div>
+        <button onclick="window.editPegawai()" class="bg-blue-600 text-white px-4 py-2 rounded-xl text-xs font-bold flex items-center gap-2 shadow-lg shadow-blue-200 hover:bg-blue-700 transition-all">
+          <i data-lucide="plus" class="w-4 h-4"></i> Tambah Pegawai
+        </button>
+      </div>
+
+      <div class="glass-card overflow-hidden">
+        <div class="overflow-x-auto no-scrollbar">
+          <table class="w-full text-left border-collapse">
+            <thead>
+              <tr class="text-slate-400 text-[10px] uppercase tracking-widest border-b border-white/20 bg-white/10">
+                <th class="p-4 font-bold">NIK / Nama</th>
+                <th class="p-4 font-bold">Jabatan</th>
+                <th class="p-4 font-bold">Jadwal KGB</th>
+                <th class="p-4 font-bold">Jadwal KP</th>
+                <th class="p-4 font-bold text-right">Aksi</th>
+              </tr>
+            </thead>
+            <tbody class="text-sm">
+              ${adminData.pegawai.map((p: any) => {
+                const kgbNear = isNear(p.tmtKgbNext, 90);
+                const kpNear = isNear(p.tmtKpNext, 180);
+                return `
+                <tr class="border-b border-white/10 hover:bg-white/10 transition-colors">
+                  <td class="p-4">
+                    <p class="font-bold text-slate-700">${p.nama}</p>
+                    <p class="text-[10px] font-mono text-slate-400">${p.nik}</p>
+                  </td>
+                  <td class="p-4 text-slate-500 text-xs">${p.jabatan}</td>
+                  <td class="p-4">
+                    <div class="flex flex-col">
+                      <span class="text-xs ${kgbNear ? 'text-red-500 font-bold' : 'text-slate-600'}">${p.tmtKgbNext ? formatDate(p.tmtKgbNext).split(' pukul')[0] : '-'}</span>
+                      ${kgbNear ? '<span class="text-[9px] bg-red-100 text-red-600 px-1 rounded w-fit mt-1 font-bold">Segera</span>' : ''}
+                    </div>
+                  </td>
+                  <td class="p-4">
+                    <div class="flex flex-col">
+                      <span class="text-xs ${kpNear ? 'text-red-500 font-bold' : 'text-slate-600'}">${p.tmtKpNext ? formatDate(p.tmtKpNext).split(' pukul')[0] : '-'}</span>
+                      ${kpNear ? '<span class="text-[9px] bg-red-100 text-red-600 px-1 rounded w-fit mt-1 font-bold">Segera</span>' : ''}
+                    </div>
+                  </td>
+                  <td class="p-4 text-right space-x-1">
+                    <button onclick="window.editPegawai('${p.nik}')" class="p-2 text-blue-500 hover:bg-blue-50 rounded-lg transition-all"><i data-lucide="edit-2" class="w-4 h-4"></i></button>
+                    <button onclick="window.deletePegawai('${p.nik}')" class="p-2 text-red-400 hover:bg-red-50 rounded-lg transition-all"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
+                  </td>
+                </tr>
+              `}).join('')}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  `;
+};
+
+const renderAdminMonitoring = (container: HTMLElement, type: 'kp' | 'kgb') => {
+  const list = adminData[type];
+  container.innerHTML = `
+    <div class="animate-fade-in space-y-6">
+      <div>
+        <h2 class="text-2xl font-bold text-blue-950">Monitoring ${type.toUpperCase()}</h2>
+        <p class="text-slate-500 text-sm">Daftar pengajuan ${type.toUpperCase()} yang masuk ke sistem</p>
+      </div>
+
+      <div class="glass-card overflow-hidden">
+        <div class="overflow-x-auto no-scrollbar">
+          <table class="w-full text-left border-collapse">
+            <thead>
+              <tr class="text-slate-400 text-[10px] uppercase tracking-widest border-b border-white/20 bg-white/10">
+                <th class="p-4 font-bold">Tiket</th>
+                <th class="p-4 font-bold">Nama Pegawai</th>
+                <th class="p-4 font-bold">Tanggal Masuk</th>
+                <th class="p-4 font-bold">Status</th>
+                <th class="p-4 font-bold text-right">Aksi</th>
+              </tr>
+            </thead>
+            <tbody class="text-sm">
+              ${list.map((item: any) => `
+                <tr class="border-b border-white/10 hover:bg-white/10 transition-colors">
+                  <td class="p-4 font-mono font-bold text-blue-600 text-xs">${item.ticket}</td>
+                  <td class="p-4 font-bold text-slate-700">${item.nama}</td>
+                  <td class="p-4 text-slate-500 text-xs">${formatDate(item.timestamp).split(' pukul')[0]}</td>
+                  <td class="p-4">
+                    <span class="px-3 py-1 rounded-full text-[10px] font-bold uppercase bg-blue-50 text-blue-600 border border-blue-100">${item.status}</span>
+                  </td>
+                  <td class="p-4 text-right">
+                    <button onclick="window.updateStatus('${item.ticket}')" class="p-2 text-blue-500 hover:bg-blue-50 rounded-lg transition-all flex items-center gap-1 ml-auto">
+                      <i data-lucide="edit-2" class="w-4 h-4"></i>
+                      <span class="text-[10px] font-bold">Update</span>
+                    </button>
+                  </td>
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
+          ${list.length === 0 ? '<p class="text-center py-12 text-slate-400">Belum ada data pengajuan.</p>' : ''}
+        </div>
+      </div>
+    </div>
+  `;
 };
 
 // --- GLOBAL ACTIONS ---

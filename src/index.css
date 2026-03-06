@@ -73,6 +73,14 @@
   .timeline-line {
     @apply absolute left-2 top-4 bottom-0 w-0.5 bg-slate-200;
   }
+
+  .admin-menu-item {
+    @apply flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold text-slate-500 hover:bg-white/40 hover:text-blue-600 transition-all w-full text-left;
+  }
+
+  .admin-menu-item.active {
+    @apply bg-blue-600 text-white shadow-lg shadow-blue-200 hover:bg-blue-600 hover:text-white;
+  }
 }
 
 /* Custom Animations */
