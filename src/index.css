@@ -92,19 +92,22 @@
 
   @media (max-width: 768px) {
     .admin-sidebar {
-      @apply h-auto w-full bottom-0 top-auto border-r-0 border-t flex flex-row justify-around items-center p-2;
+      @apply h-auto w-[calc(100%-2rem)] bottom-4 left-4 right-4 top-auto border-none flex flex-row justify-around items-center p-2 rounded-[2rem] shadow-2xl bg-white/95 backdrop-blur-md;
     }
     .admin-sidebar .sidebar-header, .admin-sidebar .sidebar-footer {
       @apply hidden;
     }
     .admin-sidebar .admin-menu-item {
-      @apply flex-col gap-1 p-2 text-[10px] w-auto;
+      @apply flex-col gap-1 p-2 text-[10px] w-auto bg-transparent shadow-none;
     }
     .admin-sidebar .admin-menu-item i {
       @apply w-5 h-5;
     }
+    .admin-sidebar .admin-menu-item.active {
+      @apply text-blue-600 bg-transparent shadow-none;
+    }
     .admin-main {
-      @apply ml-0 pb-20;
+      @apply ml-0 pb-24;
     }
   }
 

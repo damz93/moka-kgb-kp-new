@@ -46,8 +46,13 @@ const render = () => {
   const navMobile = $('nav.md\\:hidden');
   if (!main) return;
 
+  // If logged in as admin, force admin page if on home/login
+  if (isAdmin && (currentPage === 'home' || currentPage === 'login')) {
+    currentPage = 'admin';
+  }
+
   // Show/Hide Main Navigation
-  if (currentPage === 'admin' || (currentPage === 'login' && isAdmin)) {
+  if (isAdmin || currentPage === 'admin') {
     navDesktop?.classList.add('hidden');
     navMobile?.classList.add('hidden');
     main.className = 'min-h-screen'; // Reset classes for admin
