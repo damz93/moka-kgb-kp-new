@@ -1,18 +1,41 @@
 import './index.css';
-import { createIcons, Home, Search, FilePlus, User, CircleCheckBig, Clock, CircleAlert, ChevronRight, LogOut, LayoutDashboard, Users, FileText, Settings, Plus, Edit2, Trash2, Filter, CirclePlus, MessageCircle, Eye, RefreshCw } from 'lucide';
+import { 
+  createIcons, 
+  Home, 
+  Search, 
+  FilePlus, 
+  User, 
+  CircleCheckBig, 
+  Clock, 
+  CircleAlert, 
+  ChevronRight, 
+  LogOut, 
+  LayoutDashboard, 
+  Users, 
+  FileText, 
+  Settings, 
+  Plus, 
+  Pencil, 
+  Trash2, 
+  Filter, 
+  CirclePlus, 
+  MessageCircle, 
+  Eye, 
+  RefreshCw 
+} from 'lucide';
 import Swal from 'sweetalert2';
 
 // --- CONFIGURATION ---
-const GAS_URL = 'https://script.google.com/macros/s/AKfycbxhrCUKHLpYLeTYRFK4xMCaegKcehMWj2l7PoAVHIzByWvrWt7nPqbY6G0CN4yrd8v0tA/exec'; // User will replace this
+const GAS_URL = 'https://script.google.com/macros/s/AKfycbxhrCUKHLpYLeTYRFK4xMCaegKcehMWj2l7PoAVHIzByWvrWt7nPqbY6G0CN4yrd8v0tA/exec'; // User will 
 
 const ALL_ICONS = { 
   home: Home, 
   search: Search, 
   'file-plus': FilePlus, 
   user: User, 
-  'check-circle-2': CircleCheckBig, 
+  'circle-check-big': CircleCheckBig, 
   clock: Clock, 
-  'alert-circle': CircleAlert, 
+  'circle-alert': CircleAlert, 
   'chevron-right': ChevronRight, 
   'log-out': LogOut, 
   'layout-dashboard': LayoutDashboard, 
@@ -20,10 +43,10 @@ const ALL_ICONS = {
   'file-text': FileText, 
   settings: Settings, 
   plus: Plus, 
-  'edit-2': Edit2, 
+  pencil: Pencil, 
   'trash-2': Trash2, 
   filter: Filter, 
-  'plus-circle': CirclePlus, 
+  'circle-plus': CirclePlus, 
   'message-circle': MessageCircle, 
   eye: Eye, 
   'refresh-cw': RefreshCw 
@@ -138,9 +161,9 @@ const renderHome = (container: Element) => {
           </div>
           <h3 class="text-2xl font-bold text-blue-900">Syarat KGB</h3>
           <ul class="space-y-3 text-slate-600">
-            <li class="flex items-center gap-2"><i data-lucide="check-circle-2" class="w-4 h-4 text-green-500"></i> SK Pangkat Terakhir</li>
-            <li class="flex items-center gap-2"><i data-lucide="check-circle-2" class="w-4 h-4 text-green-500"></i> SK KGB Terakhir</li>
-            <li class="flex items-center gap-2"><i data-lucide="check-circle-2" class="w-4 h-4 text-green-500"></i> Penilaian Kinerja (SKP)</li>
+            <li class="flex items-center gap-2"><i data-lucide="circle-check-big" class="w-4 h-4 text-green-500"></i> SK Pangkat Terakhir</li>
+            <li class="flex items-center gap-2"><i data-lucide="circle-check-big" class="w-4 h-4 text-green-500"></i> SK KGB Terakhir</li>
+            <li class="flex items-center gap-2"><i data-lucide="circle-check-big" class="w-4 h-4 text-green-500"></i> Penilaian Kinerja (SKP)</li>
           </ul>
         </div>
         <div class="glass-card p-8 space-y-4">
@@ -149,9 +172,9 @@ const renderHome = (container: Element) => {
           </div>
           <h3 class="text-2xl font-bold text-blue-900">Syarat KP</h3>
           <ul class="space-y-3 text-slate-600">
-            <li class="flex items-center gap-2"><i data-lucide="check-circle-2" class="w-4 h-4 text-green-500"></i> SK CPNS & PNS</li>
-            <li class="flex items-center gap-2"><i data-lucide="check-circle-2" class="w-4 h-4 text-green-500"></i> Ijazah Terakhir</li>
-            <li class="flex items-center gap-2"><i data-lucide="check-circle-2" class="w-4 h-4 text-green-500"></i> SKP 2 Tahun Terakhir</li>
+            <li class="flex items-center gap-2"><i data-lucide="circle-check-big" class="w-4 h-4 text-green-500"></i> SK CPNS & PNS</li>
+            <li class="flex items-center gap-2"><i data-lucide="circle-check-big" class="w-4 h-4 text-green-500"></i> Ijazah Terakhir</li>
+            <li class="flex items-center gap-2"><i data-lucide="circle-check-big" class="w-4 h-4 text-green-500"></i> SKP 2 Tahun Terakhir</li>
           </ul>
         </div>
       </div>
@@ -199,7 +222,7 @@ const renderCek = (container: Element) => {
         resultDiv.innerHTML = `
           <div class="glass-card p-12 text-center space-y-4">
             <div class="w-20 h-20 bg-red-100 text-red-600 rounded-full flex items-center justify-center mx-auto">
-              <i data-lucide="alert-circle" class="w-10 h-10"></i>
+              <i data-lucide="circle-alert" class="w-10 h-10"></i>
             </div>
             <h3 class="text-xl font-bold">Data Tidak Ditemukan</h3>
             <p class="text-slate-500">Belum ada pengajuan aktif untuk NIK ${nik}.</p>
@@ -658,7 +681,7 @@ const renderAdminDashboard = (container: HTMLElement) => {
         </div>
         <div class="bg-white p-6 rounded-3xl shadow-sm border border-slate-100 flex flex-col gap-4">
           <div class="w-12 h-12 bg-emerald-500 rounded-2xl flex items-center justify-center text-white">
-            <i data-lucide="check-circle-2" class="w-6 h-6"></i>
+            <i data-lucide="circle-check-big" class="w-6 h-6"></i>
           </div>
           <div>
             <p class="text-slate-400 text-xs font-medium">Pegawai Aktif</p>
@@ -719,7 +742,7 @@ const renderAdminDashboard = (container: HTMLElement) => {
             </div>
             <div class="flex gap-4">
               <div class="w-10 h-10 bg-red-50 rounded-xl flex items-center justify-center text-red-500 shrink-0">
-                <i data-lucide="alert-circle" class="w-5 h-5"></i>
+                <i data-lucide="circle-alert" class="w-5 h-5"></i>
               </div>
               <div class="space-y-1">
                 <p class="text-sm font-bold text-slate-800">Berkas KP Kurang</p>
@@ -729,7 +752,7 @@ const renderAdminDashboard = (container: HTMLElement) => {
             </div>
             <div class="flex gap-4">
               <div class="w-10 h-10 bg-green-50 rounded-xl flex items-center justify-center text-green-500 shrink-0">
-                <i data-lucide="check-circle-2" class="w-5 h-5"></i>
+                <i data-lucide="circle-check-big" class="w-5 h-5"></i>
               </div>
               <div class="space-y-1">
                 <p class="text-sm font-bold text-slate-800">KP Disetujui</p>
@@ -808,7 +831,7 @@ const renderAdminPegawai = (container: HTMLElement) => {
                   </td>
                   <td class="p-6 text-right">
                     <div class="flex justify-end gap-2">
-                      <button onclick="window.editPegawai('${p.nik}')" class="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-all"><i data-lucide="edit-2" class="w-4 h-4"></i></button>
+                      <button onclick="window.editPegawai('${p.nik}')" class="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-all"><i data-lucide="pencil" class="w-4 h-4"></i></button>
                       <button onclick="window.deletePegawai('${p.nik}')" class="p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-xl transition-all"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
                     </div>
                   </td>
@@ -951,7 +974,7 @@ const renderAdminMonitoring = (container: HTMLElement, type: 'kp' | 'kgb') => {
                           </button>
                         ` : `
                           <button onclick="window.autoCreateRequest('${p.nik}', '${type}')" class="p-2 text-emerald-600 hover:bg-emerald-50 rounded-xl transition-all" title="Buat Pengajuan Otomatis">
-                            <i data-lucide="plus-circle" class="w-4 h-4"></i>
+                            <i data-lucide="circle-plus" class="w-4 h-4"></i>
                           </button>
                         `}
                         <button onclick="window.shareToWA('${p.nik}', '${type}')" class="p-2 text-green-600 hover:bg-green-50 rounded-xl transition-all" title="Share ke WhatsApp">
