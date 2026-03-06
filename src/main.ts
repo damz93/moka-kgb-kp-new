@@ -5,6 +5,30 @@ import Swal from 'sweetalert2';
 // --- CONFIGURATION ---
 const GAS_URL = 'https://script.google.com/macros/s/AKfycbxhrCUKHLpYLeTYRFK4xMCaegKcehMWj2l7PoAVHIzByWvrWt7nPqbY6G0CN4yrd8v0tA/exec'; // User will replace this
 
+const ALL_ICONS = { 
+  home: Home, 
+  search: Search, 
+  'file-plus': FilePlus, 
+  user: User, 
+  'check-circle-2': CheckCircle2, 
+  clock: Clock, 
+  'alert-circle': AlertCircle, 
+  'chevron-right': ChevronRight, 
+  'log-out': LogOut, 
+  'layout-dashboard': LayoutDashboard, 
+  users: Users, 
+  'file-text': FileText, 
+  settings: Settings, 
+  plus: Plus, 
+  'edit-2': Edit2, 
+  'trash-2': Trash2, 
+  filter: Filter, 
+  'plus-circle': PlusCircle, 
+  'message-circle': MessageCircle, 
+  eye: Eye, 
+  'refresh-cw': RefreshCw 
+};
+
 // --- STATE MANAGEMENT ---
 let currentPage = 'home';
 let isAdmin = !!localStorage.getItem('moka_token');
@@ -83,9 +107,7 @@ const render = () => {
   }
 
   // Re-initialize Icons
-  createIcons({
-    icons: { Home, Search, FilePlus, User, CheckCircle2, Clock, AlertCircle, ChevronRight, LogOut, LayoutDashboard, Users, FileText, Settings, Plus, Edit2, Trash2, Filter }
-  });
+  createIcons({ icons: ALL_ICONS });
 };
 
 // --- PAGES ---
@@ -225,7 +247,7 @@ const renderCek = (container: Element) => {
           </div>
         `;
       }
-      createIcons({ icons: { AlertCircle, Clock, CheckCircle2 } });
+      createIcons({ icons: ALL_ICONS });
     } catch (e) {
       resultDiv.innerHTML = '<p class="text-center text-red-500">Gagal mengambil data. Periksa koneksi atau URL API.</p>';
     }
@@ -518,7 +540,7 @@ const renderAdminContent = () => {
     case 'kgb': renderAdminMonitoring(container as HTMLElement, 'kgb'); break;
   }
 
-  createIcons({ icons: { LayoutDashboard, Users, FileText, LogOut, Plus, Edit2, Trash2, Filter, CheckCircle2, Clock, AlertCircle } });
+  createIcons({ icons: ALL_ICONS });
 };
 
 const populateFilters = () => {
@@ -949,7 +971,7 @@ const renderAdminMonitoring = (container: HTMLElement, type: 'kp' | 'kgb') => {
       </div>
     </div>
   `;
-  createIcons({ icons: { Clock, PlusCircle, MessageCircle, Eye, RefreshCw } });
+  createIcons({ icons: ALL_ICONS });
 };
 
 // --- GLOBAL ACTIONS ---
