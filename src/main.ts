@@ -5,9 +5,8 @@ import Swal from 'sweetalert2';
 
 // --- CONFIGURATION ---
 // const GAS_URL = 'https://script.google.com/macros/s/AKfycbxhrCUKHLpYLeTYRFK4xMCaegKcehMWj2l7PoAVHIzByWvrWt7nPqbY6G0CN4yrd8v0tA/exec';
-const GAS_URL = 'https://script.google.com/macros/s/AKfycbxQDQ3NaawSUlapmVfRj1fmDRsBCFAkMOnc0c0O9sjRkRN_-P7zf-pks4Vm8O63SY2rcQ/exec';
+const GAS_URL = 'https://script.google.com/macros/s/AKfycbwxKIZQu0D7jrXzIwCNTQwU2KAhjY99wjx4lxlJOmtFEU6nf5ne7-UYKmMdYyfgrBITqg/exec';
 
-// --- STATE MANAGEMENT ---
 let currentPage = 'home';
 let isAdmin = !!localStorage.getItem('moka_token');
 let adminData: any = null;
@@ -106,7 +105,7 @@ const renderHome = (container: Element) => {
           Sistem Informasi Monitoring dan Pengajuan Kenaikan Gaji Berkala serta Kenaikan Pangkat secara online dan real-time.
         </p>
         <div class="flex flex-col md:flex-row gap-4 justify-center pt-4">
-          <button hidden data-page="ajukan" class="btn-primary md:w-auto px-10">Ajukan Sekarang</button>
+          <button data-page="ajukan" class="btn-primary md:w-auto px-10">Ajukan Sekarang</button>
           <button data-page="cek" class="px-10 py-4 bg-white text-blue-600 font-bold rounded-2xl border border-blue-100 shadow-sm hover:shadow-md transition-all">Cek Status</button>
         </div>
       </section>
@@ -121,6 +120,7 @@ const renderHome = (container: Element) => {
           <ul class="space-y-3 text-slate-600">
             <li class="flex items-center gap-2"><i data-lucide="circle-check-big" class="w-4 h-4 text-green-500"></i> SK Pangkat Terakhir</li>
             <li class="flex items-center gap-2"><i data-lucide="circle-check-big" class="w-4 h-4 text-green-500"></i> SK KGB Terakhir</li>
+            <li class="flex items-center gap-2"><i data-lucide="circle-check-big" class="w-4 h-4 text-green-500"></i> Penilaian Kinerja (SKP)</li>
           </ul>
         </div>
         <div class="glass-card p-8 space-y-4">
@@ -145,12 +145,12 @@ const renderCek = (container: Element) => {
     <div class="animate-fade-in max-w-2xl mx-auto space-y-8">
       <div class="text-center space-y-2">
         <h2 class="text-3xl font-bold text-blue-950">Cek Status Pengajuan</h2>
-        <p class="text-slate-500">Masukkan Kode KGB atau KP + NIP Anda untuk melihat status pengajuan terbaru</p>
+        <p class="text-slate-500">Masukkan Nomor Tiket Anda (KGB-NIP atau KP-NIP anda)untuk melihat status pengajuan</p>
       </div>
       
       <div class="glass-card p-8 space-y-6">
         <div class="space-y-4">
-          <input type="text" id="nik-input" class="input-field text-center text-2xl font-bold tracking-widest" placeholder="MASUKKAN KGB-NIP ATAU KP-NIP ANDA">
+          <input type="text" id="ticket-input" class="input-field text-center text-2xl font-bold tracking-widest uppercase" placeholder="CONTOH: KGB-19870101...">
           <button id="btn-cek" class="btn-primary">Cari Pengajuan</button>
         </div>
       </div>
@@ -162,9 +162,8 @@ const renderCek = (container: Element) => {
   `;
 
   $('#btn-cek')?.addEventListener('click', async () => {
-    const nik = (($('#nik-input') as HTMLInputElement).value || '').trim();
-    if (!nik) return Swal.fire('Error', 'Masukkan NIP Anda', 'error');
-    if (nik.length < 10) return Swal.fire('Error', 'NIP tidak valid', 'error');
+    const ticket = (($('#ticket-input') as HTMLInputElement).value || '').trim().toUpperCase();
+    if (!ticket) return Swal.fire('Error', 'Masukkan Nomor Tiket Anda', 'error');
 
     const resultDiv = $('#cek-result');
     if (!resultDiv) return;
@@ -173,7 +172,7 @@ const renderCek = (container: Element) => {
     resultDiv.classList.remove('hidden');
 
     try {
-      const res = await fetch(`${GAS_URL}?action=checkByNIK&nik=${nik}`);
+      const res = await fetch(`${GAS_URL}?action=checkTicket&ticket=${ticket}`);
       const data = await res.json();
 
       if (!data.success) {
@@ -183,7 +182,7 @@ const renderCek = (container: Element) => {
               <i data-lucide="circle-alert" class="w-10 h-10"></i>
             </div>
             <h3 class="text-xl font-bold">Data Tidak Ditemukan</h3>
-            <p class="text-slate-500">Belum ada pengajuan aktif untuk NIP ${nik}.</p>
+            <p class="text-slate-500">Nomor tiket ${ticket} tidak ditemukan atau salah ketik.</p>
           </div>
         `;
       } else {
@@ -709,8 +708,8 @@ const renderAdminDashboard = (container: HTMLElement) => {
           <div>
             <p class="text-slate-400 text-xs font-medium">Pegawai Aktif</p>
             <div class="flex items-baseline gap-2">
-              <h4 class="text-3xl font-bold text-slate-800">${adminData.pegawai.length}</h4>
-              <span class="text-[10px] text-slate-400 font-medium">98% dari total</span>
+              <h4 class="text-3xl font-bold text-slate-800">${adminData.pegawai.filter((p: any) => p.status !== 'Tidak Aktif').length}</h4>
+              <span class="text-[10px] text-slate-400 font-medium">${Math.round((adminData.pegawai.filter((p: any) => p.status !== 'Tidak Aktif').length / adminData.pegawai.length) * 100) || 0}% dari total</span>
             </div>
           </div>
         </div>
