@@ -847,7 +847,7 @@ const renderAdminPegawai = (container: HTMLElement) => {
                   <td class="p-6">
                     <p class="text-xs font-bold text-slate-600">${p.jabatan}</p>
                   </td>
-                  <td class="p-6 text-slate-500 text-xs">${p.unit_kerja || '-'}</td>
+                  <td class="p-6 text-slate-500 text-xs">${p.unitKerja || '-'}</td>
                   <td class="p-6">
                     <span class="status-badge status-active">Aktif</span>
                   </td>
@@ -1040,7 +1040,7 @@ const renderAdminMonitoring = (container: HTMLElement, type: 'kp' | 'kgb') => {
       const res = await fetch(GAS_URL, {
         method: 'POST',
         body: JSON.stringify({
-          action: 'autoCreateRequest',
+          action: 'submitRequest',
           nik: p.nik,
           nama: p.nama,
           kategori: type.toUpperCase(),
@@ -1132,7 +1132,7 @@ const renderAdminMonitoring = (container: HTMLElement, type: 'kp' | 'kgb') => {
           </div>
           <div>
             <label class="text-xs font-bold text-slate-400">Unit Kerja</label>
-            <input id="swal-unit" class="input-field mt-1" placeholder="Unit Kerja" value="${p?.unit_kerja || ''}">
+            <input id="swal-unit" class="input-field mt-1" placeholder="Unit Kerja" value="${p?.unitKerja || ''}">
           </div>
         </div>
         <div class="grid grid-cols-2 gap-4">
@@ -1160,7 +1160,7 @@ const renderAdminMonitoring = (container: HTMLElement, type: 'kp' | 'kgb') => {
         nik: nikVal,
         nama: namaVal,
         jabatan: (document.getElementById('swal-jabatan') as HTMLInputElement).value,
-        unit_kerja: (document.getElementById('swal-unit') as HTMLInputElement).value,
+        unitKerja: (document.getElementById('swal-unit') as HTMLInputElement).value,
         tmtKgbNext: (document.getElementById('swal-kgb') as HTMLInputElement).value,
         tmtKpNext: (document.getElementById('swal-kp') as HTMLInputElement).value
       }
@@ -1200,7 +1200,7 @@ const renderAdminMonitoring = (container: HTMLElement, type: 'kp' | 'kgb') => {
     p.nik,
     p.nama,
     p.jabatan,
-    p.unit_kerja || '',
+    p.unitKerja || '',
     p.tmtKgbNext ? new Date(p.tmtKgbNext).toLocaleDateString('id-ID') : '',
     p.tmtKpNext ? new Date(p.tmtKpNext).toLocaleDateString('id-ID') : ''
   ]);
