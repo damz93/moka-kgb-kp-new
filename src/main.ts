@@ -1,58 +1,9 @@
 import './index.css';
-import { 
-  createIcons, 
-  Home, 
-  Search, 
-  FilePlus, 
-  User, 
-  CircleCheckBig, 
-  Clock, 
-  CircleAlert, 
-  ChevronRight, 
-  LogOut, 
-  LayoutDashboard, 
-  Users, 
-  FileText, 
-  Settings, 
-  Plus, 
-  Pencil, 
-  Trash2, 
-  Filter, 
-  CirclePlus, 
-  MessageCircle, 
-  Eye, 
-  RefreshCw,
-  ChevronDown
-} from 'lucide';
+import { createIcons, icons } from 'lucide';
 import Swal from 'sweetalert2';
 
 // --- CONFIGURATION ---
-const GAS_URL = 'https://script.google.com/macros/s/AKfycbxhrCUKHLpYLeTYRFK4xMCaegKcehMWj2l7PoAVHIzByWvrWt7nPqbY6G0CN4yrd8v0tA/exec'; // User will 
-
-const ALL_ICONS = { 
-  home: Home, 
-  search: Search, 
-  'file-plus': FilePlus, 
-  user: User, 
-  'circle-check-big': CircleCheckBig, 
-  clock: Clock, 
-  'circle-alert': CircleAlert, 
-  'chevron-right': ChevronRight, 
-  'log-out': LogOut, 
-  'layout-dashboard': LayoutDashboard, 
-  users: Users, 
-  'file-text': FileText, 
-  settings: Settings, 
-  plus: Plus, 
-  pencil: Pencil, 
-  'trash-2': Trash2, 
-  filter: Filter, 
-  'circle-plus': CirclePlus, 
-  'message-circle': MessageCircle, 
-  eye: Eye, 
-  'refresh-cw': RefreshCw,
-  'chevron-down': ChevronDown
-};
+const GAS_URL = 'https://script.google.com/macros/s/AKfycbxhrCUKHLpYLeTYRFK4xMCaegKcehMWj2l7PoAVHIzByWvrWt7nPqbY6G0CN4yrd8v0tA/exec';
 
 // --- STATE MANAGEMENT ---
 let currentPage = 'home';
@@ -134,7 +85,7 @@ const render = () => {
 
   // Re-initialize Icons
   setTimeout(() => {
-    createIcons({ icons: ALL_ICONS });
+    createIcons({ icons });
   }, 100);
 };
 
@@ -185,7 +136,7 @@ const renderHome = (container: Element) => {
       </div>
     </div>
   `;
-  createIcons({ icons: ALL_ICONS });
+  createIcons({ icons });
 };
 
 const renderCek = (container: Element) => {
@@ -276,7 +227,7 @@ const renderCek = (container: Element) => {
           </div>
         `;
       }
-      createIcons({ icons: ALL_ICONS });
+      createIcons({ icons });
     } catch (e) {
       resultDiv.innerHTML = '<p class="text-center text-red-500">Gagal mengambil data. Periksa koneksi atau URL API.</p>';
     }
@@ -385,7 +336,7 @@ const renderAjukan = (container: Element) => {
       Swal.fire('Error', 'Gagal menghubungi server', 'error');
     }
   });
-  createIcons({ icons: ALL_ICONS });
+  createIcons({ icons });
 };
 
 const renderLogin = (container: Element) => {
@@ -442,20 +393,20 @@ const renderLogin = (container: Element) => {
       Swal.fire('Error', 'Gagal login', 'error');
     }
   });
-  createIcons({ icons: ALL_ICONS });
+  createIcons({ icons });
 };
 
 const renderAdmin = (container: Element) => {
   container.innerHTML = `
-    <div class="flex h-screen bg-slate-50 overflow-hidden">
-      <!-- Sidebar -->
-      <aside class="w-72 bg-white border-r border-slate-200 flex flex-col p-6 gap-8 z-50">
+    <div class="flex h-screen bg-slate-50 overflow-hidden flex-col md:flex-row">
+      <!-- Sidebar (Desktop) -->
+      <aside class="hidden md:flex w-72 bg-white border-r border-slate-200 flex-col p-6 gap-8 z-50">
         <div class="flex items-center gap-3 px-2">
           <div class="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center text-white font-bold text-xl shadow-lg shadow-blue-200">M</div>
           <span class="font-bold text-xl tracking-tight text-blue-900">MOKA <span class="text-blue-600">KGB KP</span></span>
         </div>
         
-        <nav class="flex-1 space-y-2 flex md:flex-col">
+        <nav class="flex-1 space-y-2 flex flex-col">
           <button data-admin-tab="dashboard" class="admin-menu-item ${adminTab === 'dashboard' ? 'active' : ''}">
             <i data-lucide="layout-dashboard"></i> <span>Dashboard</span>
           </button>
@@ -475,31 +426,54 @@ const renderAdmin = (container: Element) => {
         </div>
       </aside>
 
+      <!-- Bottom Navigation (Mobile) -->
+      <nav class="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 flex justify-around items-center p-2 z-50 shadow-2xl">
+        <button data-admin-tab="dashboard" class="flex flex-col items-center gap-1 p-2 ${adminTab === 'dashboard' ? 'text-blue-600' : 'text-slate-400'}">
+          <i data-lucide="layout-dashboard" class="w-5 h-5"></i>
+          <span class="text-[10px] font-bold">Dash</span>
+        </button>
+        <button data-admin-tab="pegawai" class="flex flex-col items-center gap-1 p-2 ${adminTab === 'pegawai' ? 'text-blue-600' : 'text-slate-400'}">
+          <i data-lucide="users" class="w-5 h-5"></i>
+          <span class="text-[10px] font-bold">Pegawai</span>
+        </button>
+        <button data-admin-tab="kp" class="flex flex-col items-center gap-1 p-2 ${adminTab === 'kp' ? 'text-blue-600' : 'text-slate-400'}">
+          <i data-lucide="file-text" class="w-5 h-5"></i>
+          <span class="text-[10px] font-bold">KP</span>
+        </button>
+        <button data-admin-tab="kgb" class="flex flex-col items-center gap-1 p-2 ${adminTab === 'kgb' ? 'text-blue-600' : 'text-slate-400'}">
+          <i data-lucide="file-text" class="w-5 h-5"></i>
+          <span class="text-[10px] font-bold">KGB</span>
+        </button>
+      </nav>
+
       <!-- Main Content Area -->
-      <main class="admin-main">
+      <main class="flex-1 flex flex-col overflow-hidden pb-16 md:pb-0">
         <!-- Header -->
-        <header class="bg-white border-b border-slate-200 px-8 py-4 sticky top-0 z-40 flex justify-between items-center">
-          <div>
-            <h1 id="admin-page-title" class="text-xl font-bold text-slate-800">Dashboard</h1>
-            <p class="text-xs text-slate-400">Selamat datang di Sistem Monitoring Kepegawaian</p>
+        <header class="bg-white border-b border-slate-200 px-4 md:px-8 py-4 sticky top-0 z-40 flex justify-between items-center shrink-0">
+          <div class="flex items-center gap-3 md:hidden">
+             <div class="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center text-white font-bold text-lg">M</div>
           </div>
-          <div class="flex items-center gap-6">
-            <div class="hidden md:flex items-center bg-slate-100 rounded-full px-4 py-2 gap-2 w-64">
+          <div class="hidden sm:block">
+            <h1 id="admin-page-title" class="text-lg md:text-xl font-bold text-slate-800">Dashboard</h1>
+            <p class="text-[10px] md:text-xs text-slate-400">Sistem Monitoring Kepegawaian</p>
+          </div>
+          <div class="flex items-center gap-3 md:gap-6">
+            <div class="hidden lg:flex items-center bg-slate-100 rounded-full px-4 py-2 gap-2 w-64">
               <i data-lucide="search" class="w-4 h-4 text-slate-400"></i>
               <input type="text" placeholder="Cari pegawai..." class="bg-transparent border-none outline-none text-sm w-full">
             </div>
-            <div class="flex items-center gap-4 relative">
+            <div class="flex items-center gap-2 md:gap-4 relative">
               <button class="relative p-2 text-slate-400 hover:text-blue-600 transition-colors">
                 <i data-lucide="clock" class="w-5 h-5"></i>
                 <span class="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full border-2 border-white"></span>
               </button>
               <div class="h-8 w-px bg-slate-200"></div>
-              <div id="profile-trigger" class="flex items-center gap-3 cursor-pointer hover:bg-slate-50 p-2 rounded-2xl transition-all">
-                <div class="text-right hidden sm:block">
+              <div id="profile-trigger" class="flex items-center gap-2 md:gap-3 cursor-pointer hover:bg-slate-50 p-1 md:p-2 rounded-2xl transition-all">
+                <div class="text-right hidden md:block">
                   <p class="text-xs font-bold text-slate-800">Admin SIMPEG</p>
                   <p class="text-[10px] text-slate-400">Administrator</p>
                 </div>
-                <div class="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-bold">
+                <div class="w-8 h-8 md:w-10 md:h-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-bold text-sm md:text-base">
                   AS
                 </div>
               </div>
@@ -521,7 +495,7 @@ const renderAdmin = (container: Element) => {
           </div>
         </header>
 
-        <div id="admin-content" class="p-8">
+        <div id="admin-content" class="flex-1 overflow-y-auto p-4 md:p-8">
           <div class="flex justify-center py-12"><div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div></div>
         </div>
       </main>
@@ -561,8 +535,18 @@ const renderAdmin = (container: Element) => {
       adminTab = tab;
       
       // Update active state in UI
-      $$('[data-admin-tab]').forEach(b => b.classList.remove('active'));
-      (e.currentTarget as HTMLElement).classList.add('active');
+      $$('[data-admin-tab]').forEach(b => {
+        b.classList.remove('active');
+        b.classList.remove('text-blue-600');
+        b.classList.add('text-slate-400');
+      });
+      
+      const currentBtn = e.currentTarget as HTMLElement;
+      currentBtn.classList.add('active');
+      if (currentBtn.classList.contains('flex-col')) {
+         currentBtn.classList.remove('text-slate-400');
+         currentBtn.classList.add('text-blue-600');
+      }
       
       // Update Page Title
       const titleMap: any = { 'dashboard': 'Dashboard', 'pegawai': 'Data Pegawai', 'kp': 'Monitoring KP', 'kgb': 'Monitoring KGB' };
@@ -573,6 +557,7 @@ const renderAdmin = (container: Element) => {
     });
   });
 
+  createIcons({ icons });
   loadAdminData();
 };
 
@@ -600,7 +585,7 @@ const renderAdminContent = () => {
     case 'kgb': renderAdminMonitoring(container as HTMLElement, 'kgb'); break;
   }
 
-  createIcons({ icons: ALL_ICONS });
+  createIcons({ icons });
 };
 
 const populateFilters = () => {
@@ -879,7 +864,7 @@ const renderAdminPegawai = (container: HTMLElement) => {
       </div>
     </div>
   `;
-  createIcons({ icons: ALL_ICONS });
+  createIcons({ icons });
 };
 
 const renderAdminMonitoring = (container: HTMLElement, type: 'kp' | 'kgb') => {
@@ -1031,7 +1016,7 @@ const renderAdminMonitoring = (container: HTMLElement, type: 'kp' | 'kgb') => {
       </div>
     </div>
   `;
-  createIcons({ icons: ALL_ICONS });
+  createIcons({ icons });
 };
 
 // --- GLOBAL ACTIONS ---
