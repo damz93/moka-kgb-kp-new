@@ -28,6 +28,7 @@ import Swal from 'sweetalert2';
 // --- CONFIGURATION ---
 const GAS_URL = 'https://script.google.com/macros/s/AKfycbxhrCUKHLpYLeTYRFK4xMCaegKcehMWj2l7PoAVHIzByWvrWt7nPqbY6G0CN4yrd8v0tA/exec'; // User will 
 
+
 const ALL_ICONS = { 
   home: Home, 
   search: Search, 
