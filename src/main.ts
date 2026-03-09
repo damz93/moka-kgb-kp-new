@@ -116,7 +116,7 @@ const renderHome = (container: Element) => {
           <div class="w-14 h-14 bg-blue-100 rounded-2xl flex items-center justify-center text-blue-600">
             <i data-lucide="file-text" class="w-8 h-8"></i>
           </div>
-          <h3 class="text-2xl font-bold text-blue-900">Syarat KGB</h3>
+          <h3 class="text-2xl font-bold text-blue-900">Syarat <strong>Kenaikan Gaji Berkala (KGB)</strong></h3>
           <ul class="space-y-3 text-slate-600">
             <li class="flex items-center gap-2"><i data-lucide="circle-check-big" class="w-4 h-4 text-green-500"></i> SK Pangkat Terakhir</li>
             <li class="flex items-center gap-2"><i data-lucide="circle-check-big" class="w-4 h-4 text-green-500"></i> SK KGB Terakhir</li>
@@ -126,7 +126,7 @@ const renderHome = (container: Element) => {
           <div class="w-14 h-14 bg-indigo-100 rounded-2xl flex items-center justify-center text-indigo-600">
             <i data-lucide="users" class="w-8 h-8"></i>
           </div>
-          <h3 class="text-2xl font-bold text-blue-900">Syarat KP</h3>
+          <h3 class="text-2xl font-bold text-blue-900">Syarat <strong>Kenaikan Pangkat (KP)</strong></h3>
           <ul class="space-y-3 text-slate-600">
             <li class="flex items-center gap-2"><i data-lucide="circle-check-big" class="w-4 h-4 text-green-500"></i> SK CPNS & PNS</li>
             <li class="flex items-center gap-2"><i data-lucide="circle-check-big" class="w-4 h-4 text-green-500"></i> SK Pangkat Terakhir</li>
