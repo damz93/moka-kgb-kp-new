@@ -145,7 +145,7 @@ const renderCek = (container: Element) => {
     <div class="animate-fade-in max-w-2xl mx-auto space-y-8">
       <div class="text-center space-y-2">
         <h2 class="text-3xl font-bold text-blue-950">Cek Status Pengajuan</h2>
-        <p class="text-slate-500">Masukkan Nomor Tiket Anda (KGB-NIP atau KP-NIP anda)untuk melihat status pengajuan</p>
+        <p class="text-slate-500">Masukkan Nomor Tiket (format: KGB-NIP atau KP-NIP anda) untuk melihat status pengajuan</p>
       </div>
       
       <div class="glass-card p-8 space-y-6">
