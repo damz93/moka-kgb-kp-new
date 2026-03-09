@@ -146,12 +146,12 @@ const renderCek = (container: Element) => {
     <div class="animate-fade-in max-w-2xl mx-auto space-y-8">
       <div class="text-center space-y-2">
         <h2 class="text-3xl font-bold text-blue-950">Cek Status Pengajuan</h2>
-        <p class="text-slate-500">Masukkan NIP Anda untuk melihat status pengajuan terbaru</p>
+        <p class="text-slate-500">Masukkan Kode KGB atau KP + NIP Anda untuk melihat status pengajuan terbaru</p>
       </div>
       
       <div class="glass-card p-8 space-y-6">
         <div class="space-y-4">
-          <input type="text" id="nik-input" class="input-field text-center text-2xl font-bold tracking-widest" placeholder="MASUKKAN 18 DIGIT NIP">
+          <input type="text" id="nik-input" class="input-field text-center text-2xl font-bold tracking-widest" placeholder="MASUKKAN KGB-NIP ANDA ATAU KP-NIP ANDA">
           <button id="btn-cek" class="btn-primary">Cari Pengajuan</button>
         </div>
       </div>
