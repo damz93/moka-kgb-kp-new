@@ -7,7 +7,6 @@ import Swal from 'sweetalert2';
 // const GAS_URL = 'https://script.google.com/macros/s/AKfycbxhrCUKHLpYLeTYRFK4xMCaegKcehMWj2l7PoAVHIzByWvrWt7nPqbY6G0CN4yrd8v0tA/exec';
 const GAS_URL = 'https://script.google.com/macros/s/AKfycbzFVPkT8mnmOX8mnpB_8-tfO4b_SWH7zvNrBzLz6569qsN5DKso779Kc_1gQ-BUPQ0GGA/exec';
 
-// --- STATE MANAGEMENT ---
 let currentPage = 'home';
 let isAdmin = !!localStorage.getItem('moka_token');
 let adminData: any = null;
@@ -722,31 +721,45 @@ const renderAdminDashboard = (container: HTMLElement) => {
         <div class="lg:col-span-2 bg-white p-8 rounded-3xl shadow-sm border border-slate-100 space-y-8">
           <div class="flex justify-between items-center">
             <h3 class="font-bold text-slate-800">Distribusi Pegawai per Bidang</h3>
-            <select class="bg-slate-50 border-none text-xs font-bold text-slate-500 rounded-lg px-3 py-2 outline-none">
-              <option>Tahun 2024</option>
-            </select>
+            <div class="bg-slate-50 text-[10px] font-bold text-slate-500 rounded-lg px-3 py-2">
+              Tahun ${new Date().getFullYear()}
+            </div>
           </div>
           <div class="h-64 flex items-end justify-around gap-4 pt-4">
-            <div class="flex-1 flex flex-col items-center gap-3">
-              <div class="w-full bg-blue-500 rounded-t-lg" style="height: 60%"></div>
-              <span class="text-[10px] text-slate-400 font-bold">Umum</span>
-            </div>
-            <div class="flex-1 flex flex-col items-center gap-3">
-              <div class="w-full bg-indigo-500 rounded-t-lg" style="height: 60%"></div>
-              <span class="text-[10px] text-slate-400 font-bold">Perencanaan</span>
-            </div>
-            <div class="flex-1 flex flex-col items-center gap-3">
-              <div class="w-full bg-pink-500 rounded-t-lg" style="height: 80%"></div>
-              <span class="text-[10px] text-slate-400 font-bold">Sekretariat</span>
-            </div>
-            <div class="flex-1 flex flex-col items-center gap-3">
-              <div class="w-full bg-red-500 rounded-t-lg" style="height: 20%"></div>
-              <span class="text-[10px] text-slate-400 font-bold">Kepegawaian</span>
-            </div>
-            <div class="flex-1 flex flex-col items-center gap-3">
-              <div class="w-full bg-amber-500 rounded-t-lg" style="height: 20%"></div>
-              <span class="text-[10px] text-slate-400 font-bold">Keuangan</span>
-            </div>
+            ${(() => {
+              const currentYear = new Date().getFullYear();
+              const distribution: Record<string, number> = {};
+              
+              adminData.pegawai.forEach((p: any) => {
+                const unit = p.unitKerja || p.unit_kerja || p.unitkerja || 'Lainnya';
+                const kpYear = p.tmtKpNext ? new Date(p.tmtKpNext).getFullYear() : null;
+                const kgbYear = p.tmtKgbNext ? new Date(p.tmtKgbNext).getFullYear() : null;
+                
+                if (kpYear === currentYear || kgbYear === currentYear) {
+                  distribution[unit] = (distribution[unit] || 0) + 1;
+                }
+              });
+
+              const units = Object.keys(distribution);
+              if (units.length === 0) return `<p class="text-slate-400 text-xs italic">Tidak ada data untuk tahun ini</p>`;
+
+              const maxCount = Math.max(...Object.values(distribution));
+              const colors = ['bg-blue-500', 'bg-indigo-500', 'bg-pink-500', 'bg-red-500', 'bg-amber-500', 'bg-emerald-500'];
+
+              return units.map((unit, i) => {
+                const count = distribution[unit];
+                const height = (count / maxCount) * 100;
+                return `
+                  <div class="flex-1 flex flex-col items-center gap-3 group relative">
+                    <div class="absolute -top-8 bg-slate-800 text-white text-[10px] px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-10">
+                      ${count} Pegawai
+                    </div>
+                    <div class="w-full ${colors[i % colors.length]} rounded-t-lg transition-all duration-500" style="height: ${height}%"></div>
+                    <span class="text-[10px] text-slate-400 font-bold truncate w-full text-center" title="${unit}">${unit}</span>
+                  </div>
+                `;
+              }).join('');
+            })()}
           </div>
         </div>
 
@@ -754,38 +767,64 @@ const renderAdminDashboard = (container: HTMLElement) => {
         <div class="bg-white p-8 rounded-3xl shadow-sm border border-slate-100 space-y-6">
           <h3 class="font-bold text-slate-800">Pemberitahuan Terkini</h3>
           <div class="space-y-6">
-            <div class="flex gap-4">
-              <div class="w-10 h-10 bg-amber-50 rounded-xl flex items-center justify-center text-amber-500 shrink-0">
-                <i data-lucide="clock" class="w-5 h-5"></i>
-              </div>
-              <div class="space-y-1">
-                <p class="text-sm font-bold text-slate-800">KGB Mendatang</p>
-                <p class="text-xs text-slate-500 leading-relaxed">3 Pegawai di Bidang Keuangan akan jatuh tempo KGB bulan depan.</p>
-                <p class="text-[10px] font-bold text-blue-600 uppercase tracking-wider pt-1">Baru Saja</p>
-              </div>
-            </div>
-            <div class="flex gap-4">
-              <div class="w-10 h-10 bg-red-50 rounded-xl flex items-center justify-center text-red-500 shrink-0">
-                <i data-lucide="circle-alert" class="w-5 h-5"></i>
-              </div>
-              <div class="space-y-1">
-                <p class="text-sm font-bold text-slate-800">Berkas KP Kurang</p>
-                <p class="text-xs text-slate-500 leading-relaxed">Andi Wijaya belum mengunggah SK Jabatan terakhir.</p>
-                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider pt-1">2 Jam Yang Lalu</p>
-              </div>
-            </div>
-            <div class="flex gap-4">
-              <div class="w-10 h-10 bg-green-50 rounded-xl flex items-center justify-center text-green-500 shrink-0">
-                <i data-lucide="circle-check-big" class="w-5 h-5"></i>
-              </div>
-              <div class="space-y-1">
-                <p class="text-sm font-bold text-slate-800">KP Disetujui</p>
-                <p class="text-xs text-slate-500 leading-relaxed">Kenaikan pangkat Siti Aminah telah disetujui BKN.</p>
-                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider pt-1">Kemarin</p>
-              </div>
-            </div>
+            ${(() => {
+              const allActivities = [
+                ...adminData.kgb.map((item: any) => ({ ...item, type: 'KGB' })),
+                ...adminData.kp.map((item: any) => ({ ...item, type: 'KP' }))
+              ].sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
+              .slice(0, 5);
+
+              if (allActivities.length === 0) return `<p class="text-slate-400 text-xs italic">Belum ada aktivitas</p>`;
+
+              return allActivities.map(activity => {
+                let icon = 'clock';
+                let color = 'amber';
+                let message = '';
+
+                if (activity.status === 'Diajukan') {
+                  icon = 'file-plus';
+                  color = 'blue';
+                  message = `Pengajuan ${activity.type} baru dari <b>${activity.nama}</b> sedang menunggu verifikasi.`;
+                } else if (activity.status === 'Diverifikasi' || activity.status === 'Diproses') {
+                  icon = 'loader';
+                  color = 'indigo';
+                  message = `Pengajuan ${activity.type} <b>${activity.nama}</b> sedang dalam tahap ${activity.status.toLowerCase()}.`;
+                } else if (activity.status === 'Selesai') {
+                  icon = 'circle-check-big';
+                  color = 'green';
+                  message = `Pengajuan ${activity.type} <b>${activity.nama}</b> telah selesai diproses.`;
+                } else if (activity.status === 'Ditolak') {
+                  icon = 'circle-x';
+                  color = 'red';
+                  message = `Pengajuan ${activity.type} <b>${activity.nama}</b> ditolak.`;
+                }
+
+                const timeDiff = new Date().getTime() - new Date(activity.timestamp).getTime();
+                const minutes = Math.floor(timeDiff / 60000);
+                const hours = Math.floor(minutes / 60);
+                const days = Math.floor(hours / 24);
+
+                let timeStr = 'Baru saja';
+                if (days > 0) timeStr = `${days} hari yang lalu`;
+                else if (hours > 0) timeStr = `${hours} jam yang lalu`;
+                else if (minutes > 0) timeStr = `${minutes} menit yang lalu`;
+
+                return `
+                  <div class="flex gap-4">
+                    <div class="w-10 h-10 bg-${color}-50 rounded-xl flex items-center justify-center text-${color}-500 shrink-0">
+                      <i data-lucide="${icon}" class="w-5 h-5"></i>
+                    </div>
+                    <div class="space-y-1">
+                      <p class="text-sm font-bold text-slate-800">${activity.type} - ${activity.status}</p>
+                      <p class="text-xs text-slate-500 leading-relaxed">${message}</p>
+                      <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider pt-1">${timeStr}</p>
+                    </div>
+                  </div>
+                `;
+              }).join('');
+            })()}
           </div>
-          <button class="w-full py-3 text-blue-600 text-xs font-bold hover:bg-blue-50 rounded-xl transition-colors mt-4">Lihat Semua Aktivitas</button>
+          <button onclick="adminTab = 'kp'; renderAdminContent();" class="w-full py-3 text-blue-600 text-xs font-bold hover:bg-blue-50 rounded-xl transition-colors mt-4">Lihat Semua Aktivitas</button>
         </div>
       </div>
     </div>
@@ -848,9 +887,9 @@ const renderAdminPegawai = (container: HTMLElement) => {
                   <td class="p-6">
                     <p class="text-xs font-bold text-slate-600">${p.jabatan}</p>
                   </td>
-                  <td class="p-6 text-slate-500 text-xs">${p.unitKerja || '-'}</td>
+                  <td class="p-6 text-slate-500 text-xs">${p.unitKerja || p.unit_kerja || p.unitkerja || '-'}</td>
                   <td class="p-6">
-                    <span class="status-badge status-active">Aktif</span>
+                    <span class="status-badge ${p.status === 'Tidak Aktif' ? 'status-inactive bg-red-50 text-red-500' : 'status-active bg-green-50 text-green-500'}">${p.status || 'Aktif'}</span>
                   </td>
                   <td class="p-6 text-right">
                     <div class="flex justify-end gap-2">
@@ -1045,6 +1084,8 @@ const renderAdminMonitoring = (container: HTMLElement, type: 'kp' | 'kgb') => {
           nik: p.nik,
           nama: p.nama,
           kategori: type.toUpperCase(),
+          fileData: '', // Ensure fileData is sent to avoid GAS errors if using old script
+          fileName: '',
           token: localStorage.getItem('moka_token')
         })
       });
@@ -1133,7 +1174,7 @@ const renderAdminMonitoring = (container: HTMLElement, type: 'kp' | 'kgb') => {
           </div>
           <div>
             <label class="text-xs font-bold text-slate-400">Unit Kerja</label>
-            <input id="swal-unit" class="input-field mt-1" placeholder="Unit Kerja" value="${p?.unitKerja || ''}">
+            <input id="swal-unit" class="input-field mt-1" placeholder="Unit Kerja" value="${p?.unitKerja || p?.unit_kerja || p?.unitkerja || ''}">
           </div>
         </div>
         <div class="grid grid-cols-2 gap-4">
@@ -1145,6 +1186,13 @@ const renderAdminMonitoring = (container: HTMLElement, type: 'kp' | 'kgb') => {
             <label class="text-xs font-bold text-slate-400">TMT KP Berikutnya</label>
             <input id="swal-kp" type="date" class="input-field mt-1" value="${formatDateForInput(p?.tmtKpNext)}">
           </div>
+        </div>
+        <div>
+          <label class="text-xs font-bold text-slate-400">Status Pegawai</label>
+          <select id="swal-status" class="input-field mt-1">
+            <option value="Aktif" ${p?.status === 'Aktif' || !p?.status ? 'selected' : ''}>Aktif</option>
+            <option value="Tidak Aktif" ${p?.status === 'Tidak Aktif' ? 'selected' : ''}>Tidak Aktif</option>
+          </select>
         </div>
       </div>
     `,
@@ -1163,7 +1211,8 @@ const renderAdminMonitoring = (container: HTMLElement, type: 'kp' | 'kgb') => {
         jabatan: (document.getElementById('swal-jabatan') as HTMLInputElement).value,
         unitKerja: (document.getElementById('swal-unit') as HTMLInputElement).value,
         tmtKgbNext: (document.getElementById('swal-kgb') as HTMLInputElement).value,
-        tmtKpNext: (document.getElementById('swal-kp') as HTMLInputElement).value
+        tmtKpNext: (document.getElementById('swal-kp') as HTMLInputElement).value,
+        status: (document.getElementById('swal-status') as HTMLSelectElement).value
       }
     }
   });
@@ -1201,7 +1250,7 @@ const renderAdminMonitoring = (container: HTMLElement, type: 'kp' | 'kgb') => {
     p.nik,
     p.nama,
     p.jabatan,
-    p.unitKerja || '',
+    p.unitKerja || p.unit_kerja || p.unitkerja || '',
     p.tmtKgbNext ? new Date(p.tmtKgbNext).toLocaleDateString('id-ID') : '',
     p.tmtKpNext ? new Date(p.tmtKpNext).toLocaleDateString('id-ID') : ''
   ]);
