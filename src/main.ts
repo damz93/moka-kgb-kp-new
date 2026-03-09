@@ -5,7 +5,7 @@ import Swal from 'sweetalert2';
 
 // --- CONFIGURATION ---
 // const GAS_URL = 'https://script.google.com/macros/s/AKfycbxhrCUKHLpYLeTYRFK4xMCaegKcehMWj2l7PoAVHIzByWvrWt7nPqbY6G0CN4yrd8v0tA/exec';
-const GAS_URL = 'https://script.google.com/macros/s/AKfycbzW9DLKyh_mkColr-vEM5fN9UwjBeiTRnHdk6Gz6PvyHppY140UFNg5gpEjpqlo0QKL-w/exec';
+const GAS_URL = 'https://script.google.com/macros/s/AKfycbxT3ff6dDlfPV7bTmGUQt10FS__nNSYTsIudqlIgrAPZX7y9_49ZYe3mi6mq4w8NFv7NA/exec';
 
 // --- STATE MANAGEMENT ---
 let currentPage = 'home';
