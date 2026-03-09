@@ -21,13 +21,13 @@ import {
   CirclePlus, 
   MessageCircle, 
   Eye, 
-  RefreshCw 
+  RefreshCw,
+  ChevronDown
 } from 'lucide';
 import Swal from 'sweetalert2';
 
 // --- CONFIGURATION ---
 const GAS_URL = 'https://script.google.com/macros/s/AKfycbxhrCUKHLpYLeTYRFK4xMCaegKcehMWj2l7PoAVHIzByWvrWt7nPqbY6G0CN4yrd8v0tA/exec'; // User will 
-
 
 const ALL_ICONS = { 
   home: Home, 
@@ -50,7 +50,8 @@ const ALL_ICONS = {
   'circle-plus': CirclePlus, 
   'message-circle': MessageCircle, 
   eye: Eye, 
-  'refresh-cw': RefreshCw 
+  'refresh-cw': RefreshCw,
+  'chevron-down': ChevronDown
 };
 
 // --- STATE MANAGEMENT ---
@@ -58,6 +59,7 @@ let currentPage = 'home';
 let isAdmin = !!localStorage.getItem('moka_token');
 let adminData: any = null;
 let adminTab = 'dashboard';
+let showProfileMenu = false;
 
 // --- UTILS ---
 const $ = (selector: string) => document.querySelector(selector);
@@ -131,7 +133,9 @@ const render = () => {
   }
 
   // Re-initialize Icons
-  createIcons({ icons: ALL_ICONS });
+  setTimeout(() => {
+    createIcons({ icons: ALL_ICONS });
+  }, 100);
 };
 
 // --- PAGES ---
@@ -181,6 +185,7 @@ const renderHome = (container: Element) => {
       </div>
     </div>
   `;
+  createIcons({ icons: ALL_ICONS });
 };
 
 const renderCek = (container: Element) => {
@@ -188,12 +193,12 @@ const renderCek = (container: Element) => {
     <div class="animate-fade-in max-w-2xl mx-auto space-y-8">
       <div class="text-center space-y-2">
         <h2 class="text-3xl font-bold text-blue-950">Cek Status Pengajuan</h2>
-        <p class="text-slate-500">Masukkan NIK Anda untuk melihat status pengajuan terbaru</p>
+        <p class="text-slate-500">Masukkan NIP Anda untuk melihat status pengajuan terbaru</p>
       </div>
       
       <div class="glass-card p-8 space-y-6">
         <div class="space-y-4">
-          <input type="text" id="nik-input" class="input-field text-center text-2xl font-bold tracking-widest" placeholder="MASUKKAN 16 DIGIT NIK">
+          <input type="text" id="nik-input" class="input-field text-center text-2xl font-bold tracking-widest" placeholder="MASUKKAN 18 DIGIT NIP">
           <button id="btn-cek" class="btn-primary">Cari Pengajuan</button>
         </div>
       </div>
@@ -206,8 +211,8 @@ const renderCek = (container: Element) => {
 
   $('#btn-cek')?.addEventListener('click', async () => {
     const nik = (($('#nik-input') as HTMLInputElement).value || '').trim();
-    if (!nik) return Swal.fire('Error', 'Masukkan NIK Anda', 'error');
-    if (nik.length < 10) return Swal.fire('Error', 'NIK tidak valid', 'error');
+    if (!nik) return Swal.fire('Error', 'Masukkan NIP Anda', 'error');
+    if (nik.length < 10) return Swal.fire('Error', 'NIP tidak valid', 'error');
 
     const resultDiv = $('#cek-result');
     if (!resultDiv) return;
@@ -226,7 +231,7 @@ const renderCek = (container: Element) => {
               <i data-lucide="circle-alert" class="w-10 h-10"></i>
             </div>
             <h3 class="text-xl font-bold">Data Tidak Ditemukan</h3>
-            <p class="text-slate-500">Belum ada pengajuan aktif untuk NIK ${nik}.</p>
+            <p class="text-slate-500">Belum ada pengajuan aktif untuk NIP ${nik}.</p>
           </div>
         `;
       } else {
@@ -245,7 +250,7 @@ const renderCek = (container: Element) => {
               <div>
                 <p class="text-xs font-bold text-slate-400 uppercase tracking-widest">Nama Pegawai</p>
                 <h3 class="text-2xl font-bold text-blue-950">${nama}</h3>
-                <p class="text-slate-500">NIK: ${resNik} • Kategori: <span class="font-bold text-blue-600">${kategori}</span></p>
+                <p class="text-slate-500">NIP: ${resNik} • Kategori: <span class="font-bold text-blue-600">${kategori}</span></p>
                 <p class="text-xs text-slate-400 mt-1">Diajukan: ${formatDate(timestamp)}</p>
               </div>
               <span class="px-4 py-2 rounded-full text-sm font-bold ${statusColors[status] || 'bg-slate-100'}">${status}</span>
@@ -288,8 +293,8 @@ const renderAjukan = (container: Element) => {
 
       <form id="form-ajukan" class="glass-card p-8 space-y-6">
         <div class="space-y-2">
-          <label class="text-sm font-bold text-slate-600 ml-1">NIK</label>
-          <input type="text" name="nik" required class="input-field" placeholder="Masukkan 16 digit NIK">
+          <label class="text-sm font-bold text-slate-600 ml-1">NIP</label>
+          <input type="text" name="nik" required class="input-field" placeholder="Masukkan 18 digit NIP">
         </div>
         <div class="space-y-2">
           <label class="text-sm font-bold text-slate-600 ml-1">Nama Lengkap</label>
@@ -380,6 +385,7 @@ const renderAjukan = (container: Element) => {
       Swal.fire('Error', 'Gagal menghubungi server', 'error');
     }
   });
+  createIcons({ icons: ALL_ICONS });
 };
 
 const renderLogin = (container: Element) => {
@@ -436,18 +442,17 @@ const renderLogin = (container: Element) => {
       Swal.fire('Error', 'Gagal login', 'error');
     }
   });
+  createIcons({ icons: ALL_ICONS });
 };
 
 const renderAdmin = (container: Element) => {
   container.innerHTML = `
-    <div class="animate-fade-in">
+    <div class="flex h-screen bg-slate-50 overflow-hidden">
       <!-- Sidebar -->
-      <aside class="admin-sidebar p-4 flex flex-col">
-        <div class="sidebar-header px-4 py-6 mb-6 border-b border-slate-100">
-          <div class="flex items-center gap-3">
-            <div class="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center text-white font-bold">S</div>
-            <h2 class="font-bold text-slate-800 text-lg">SIMPEG</h2>
-          </div>
+      <aside class="w-72 bg-white border-r border-slate-200 flex flex-col p-6 gap-8 z-50">
+        <div class="flex items-center gap-3 px-2">
+          <div class="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center text-white font-bold text-xl shadow-lg shadow-blue-200">M</div>
+          <span class="font-bold text-xl tracking-tight text-blue-900">MOKA <span class="text-blue-600">KGB KP</span></span>
         </div>
         
         <nav class="flex-1 space-y-2 flex md:flex-col">
@@ -466,9 +471,7 @@ const renderAdmin = (container: Element) => {
         </nav>
 
         <div class="sidebar-footer pt-4 mt-4 border-t border-slate-100">
-          <button id="btn-logout" class="admin-menu-item text-red-500 hover:bg-red-50 w-full">
-            <i data-lucide="log-out" class="w-4 h-4"></i> <span>Keluar</span>
-          </button>
+          <p class="text-[10px] text-slate-400 text-center uppercase tracking-widest font-bold">v1.0.0 Stable</p>
         </div>
       </aside>
 
@@ -485,20 +488,34 @@ const renderAdmin = (container: Element) => {
               <i data-lucide="search" class="w-4 h-4 text-slate-400"></i>
               <input type="text" placeholder="Cari pegawai..." class="bg-transparent border-none outline-none text-sm w-full">
             </div>
-            <div class="flex items-center gap-4">
+            <div class="flex items-center gap-4 relative">
               <button class="relative p-2 text-slate-400 hover:text-blue-600 transition-colors">
                 <i data-lucide="clock" class="w-5 h-5"></i>
                 <span class="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full border-2 border-white"></span>
               </button>
               <div class="h-8 w-px bg-slate-200"></div>
-              <div class="flex items-center gap-3">
+              <div id="profile-trigger" class="flex items-center gap-3 cursor-pointer hover:bg-slate-50 p-2 rounded-2xl transition-all">
                 <div class="text-right hidden sm:block">
                   <p class="text-xs font-bold text-slate-800">Admin SIMPEG</p>
                   <p class="text-[10px] text-slate-400">Administrator</p>
                 </div>
-                <div class="w-10 h-10 rounded-full bg-slate-200 flex items-center justify-center text-slate-500">
-                  <i data-lucide="user" class="w-6 h-6"></i>
+                <div class="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-bold">
+                  AS
                 </div>
+              </div>
+
+              <!-- Profile Dropdown -->
+              <div id="profile-dropdown" class="${showProfileMenu ? 'flex' : 'hidden'} absolute top-full right-0 mt-2 w-48 bg-white rounded-2xl shadow-2xl border border-slate-100 flex-col overflow-hidden animate-fade-in">
+                <div class="p-4 border-b border-slate-50 bg-slate-50/50">
+                  <p class="text-xs font-bold text-slate-800">Admin SIMPEG</p>
+                  <p class="text-[10px] text-slate-400">admin@simpeg.go.id</p>
+                </div>
+                <button class="p-4 text-left text-xs font-bold text-slate-600 hover:bg-slate-50 flex items-center gap-3">
+                  <i data-lucide="user" class="w-4 h-4"></i> Profil Saya
+                </button>
+                <button id="btn-logout" class="p-4 text-left text-xs font-bold text-red-500 hover:bg-red-50 flex items-center gap-3">
+                  <i data-lucide="log-out" class="w-4 h-4"></i> Keluar
+                </button>
               </div>
             </div>
           </div>
@@ -510,6 +527,25 @@ const renderAdmin = (container: Element) => {
       </main>
     </div>
   `;
+
+  $('#profile-trigger')?.addEventListener('click', (e) => {
+    e.stopPropagation();
+    showProfileMenu = !showProfileMenu;
+    const dropdown = $('#profile-dropdown');
+    if (dropdown) {
+      dropdown.classList.toggle('hidden', !showProfileMenu);
+      dropdown.classList.toggle('flex', showProfileMenu);
+    }
+  });
+
+  document.addEventListener('click', () => {
+    showProfileMenu = false;
+    const dropdown = $('#profile-dropdown');
+    if (dropdown) {
+      dropdown.classList.add('hidden');
+      dropdown.classList.remove('flex');
+    }
+  });
 
   $('#btn-logout')?.addEventListener('click', () => {
     localStorage.removeItem('moka_token');
@@ -782,12 +818,12 @@ const renderAdminPegawai = (container: HTMLElement) => {
           <div class="flex items-center bg-slate-50 rounded-2xl px-4 py-3 gap-3 border border-slate-100 min-w-[120px]">
             <i data-lucide="filter" class="w-4 h-4 text-slate-400"></i>
             <select class="bg-transparent border-none outline-none text-sm w-full font-medium text-slate-600">
-              <option>Semua</option>
+              <option>Semua Bidang</option>
             </select>
           </div>
         </div>
         <div class="flex gap-3 w-full md:w-auto">
-          <button class="flex-1 md:flex-none flex items-center justify-center gap-2 px-6 py-3 bg-white border border-slate-200 rounded-2xl text-sm font-bold text-slate-600 hover:bg-slate-50 transition-all">
+          <button onclick="window.exportPegawai()" class="flex-1 md:flex-none flex items-center justify-center gap-2 px-6 py-3 bg-white border border-slate-200 rounded-2xl text-sm font-bold text-slate-600 hover:bg-slate-50 transition-all">
             <i data-lucide="file-plus" class="w-4 h-4"></i> Export
           </button>
           <button onclick="window.editPegawai()" class="flex-1 md:flex-none flex items-center justify-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-2xl text-sm font-bold shadow-lg shadow-blue-200 hover:bg-blue-700 transition-all">
@@ -802,8 +838,8 @@ const renderAdminPegawai = (container: HTMLElement) => {
             <thead>
               <tr class="text-slate-400 text-[10px] uppercase tracking-widest border-b border-slate-50 bg-slate-50/50">
                 <th class="p-6 font-bold">Pegawai</th>
-                <th class="p-6 font-bold">Jabatan / GOL</th>
-                <th class="p-6 font-bold">Bidang</th>
+                <th class="p-6 font-bold">Jabatan</th>
+                <th class="p-6 font-bold">Unit Kerja</th>
                 <th class="p-6 font-bold">Status</th>
                 <th class="p-6 font-bold text-right">Aksi</th>
               </tr>
@@ -824,9 +860,8 @@ const renderAdminPegawai = (container: HTMLElement) => {
                   </td>
                   <td class="p-6">
                     <p class="text-xs font-bold text-slate-600">${p.jabatan}</p>
-                    <p class="text-[10px] text-slate-400 mt-1">III/D</p>
                   </td>
-                  <td class="p-6 text-slate-500 text-xs">Umum</td>
+                  <td class="p-6 text-slate-500 text-xs">${p.unit_kerja || '-'}</td>
                   <td class="p-6">
                     <span class="status-badge status-active">Aktif</span>
                   </td>
@@ -844,6 +879,7 @@ const renderAdminPegawai = (container: HTMLElement) => {
       </div>
     </div>
   `;
+  createIcons({ icons: ALL_ICONS });
 };
 
 const renderAdminMonitoring = (container: HTMLElement, type: 'kp' | 'kgb') => {
@@ -1005,7 +1041,7 @@ const renderAdminMonitoring = (container: HTMLElement, type: 'kp' | 'kgb') => {
 
   const result = await Swal.fire({
     title: 'Buat Pengajuan Otomatis?',
-    text: `Sistem akan membuat draf pengajuan ${type.toUpperCase()} untuk ${p.nama}. Pegawai dapat melacak statusnya menggunakan NIK.`,
+    text: `Sistem akan membuat draf pengajuan ${type.toUpperCase()} untuk ${p.nama}. Pegawai dapat melacak statusnya menggunakan NIP.`,
     icon: 'question',
     showCancelButton: true,
     confirmButtonText: 'Ya, Buat!',
@@ -1096,16 +1132,22 @@ const renderAdminMonitoring = (container: HTMLElement, type: 'kp' | 'kgb') => {
     html: `
       <div class="space-y-4 text-left p-2">
         <div>
-          <label class="text-xs font-bold text-slate-400">NIK</label>
-          <input id="swal-nik" class="input-field mt-1" placeholder="NIK" value="${p?.nik || ''}" ${nik ? 'disabled' : ''}>
+          <label class="text-xs font-bold text-slate-400">NIP</label>
+          <input id="swal-nik" class="input-field mt-1" placeholder="NIP" value="${p?.nik || ''}" ${nik ? 'disabled' : ''}>
         </div>
         <div>
           <label class="text-xs font-bold text-slate-400">Nama Lengkap</label>
           <input id="swal-nama" class="input-field mt-1" placeholder="Nama Lengkap" value="${p?.nama || ''}">
         </div>
-        <div>
-          <label class="text-xs font-bold text-slate-400">Jabatan</label>
-          <input id="swal-jabatan" class="input-field mt-1" placeholder="Jabatan" value="${p?.jabatan || ''}">
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <label class="text-xs font-bold text-slate-400">Jabatan</label>
+            <input id="swal-jabatan" class="input-field mt-1" placeholder="Jabatan" value="${p?.jabatan || ''}">
+          </div>
+          <div>
+            <label class="text-xs font-bold text-slate-400">Unit Kerja</label>
+            <input id="swal-unit" class="input-field mt-1" placeholder="Unit Kerja" value="${p?.unit_kerja || ''}">
+          </div>
         </div>
         <div class="grid grid-cols-2 gap-4">
           <div>
@@ -1125,13 +1167,14 @@ const renderAdminMonitoring = (container: HTMLElement, type: 'kp' | 'kgb') => {
       const nikVal = (document.getElementById('swal-nik') as HTMLInputElement).value;
       const namaVal = (document.getElementById('swal-nama') as HTMLInputElement).value;
       if (!nikVal || !namaVal) {
-        Swal.showValidationMessage('NIK dan Nama wajib diisi');
+        Swal.showValidationMessage('NIP dan Nama wajib diisi');
         return false;
       }
       return {
         nik: nikVal,
         nama: namaVal,
         jabatan: (document.getElementById('swal-jabatan') as HTMLInputElement).value,
+        unit_kerja: (document.getElementById('swal-unit') as HTMLInputElement).value,
         tmtKgbNext: (document.getElementById('swal-kgb') as HTMLInputElement).value,
         tmtKpNext: (document.getElementById('swal-kp') as HTMLInputElement).value
       }
@@ -1161,6 +1204,38 @@ const renderAdminMonitoring = (container: HTMLElement, type: 'kp' | 'kgb') => {
       Swal.fire('Error', 'Gagal menghubungi server. Pastikan GAS_URL sudah benar.', 'error');
     }
   }
+};
+
+(window as any).exportPegawai = () => {
+  if (!adminData || !adminData.pegawai) return;
+  
+  const headers = ['NIP', 'Nama', 'Jabatan', 'Unit Kerja', 'TMT KGB', 'TMT KP'];
+  const rows = adminData.pegawai.map((p: any) => [
+    p.nik,
+    p.nama,
+    p.jabatan,
+    p.unit_kerja || '',
+    p.tmtKgbNext ? new Date(p.tmtKgbNext).toLocaleDateString('id-ID') : '',
+    p.tmtKpNext ? new Date(p.tmtKpNext).toLocaleDateString('id-ID') : ''
+  ]);
+
+  const csvContent = [
+    headers.join(','),
+    ...rows.map((r: any) => r.map((cell: any) => {
+      const val = cell === null || cell === undefined ? '' : String(cell);
+      return `"${val.replace(/"/g, '""')}"`;
+    }).join(','))
+  ].join('\n');
+
+  const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+  const link = document.createElement('a');
+  const url = URL.createObjectURL(blob);
+  link.setAttribute('href', url);
+  link.setAttribute('download', `data_pegawai_${new Date().toISOString().split('T')[0]}.csv`);
+  link.style.visibility = 'hidden';
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
 };
 
 (window as any).deletePegawai = async (nik: string) => {
