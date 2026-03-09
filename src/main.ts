@@ -120,7 +120,6 @@ const renderHome = (container: Element) => {
           <ul class="space-y-3 text-slate-600">
             <li class="flex items-center gap-2"><i data-lucide="circle-check-big" class="w-4 h-4 text-green-500"></i> SK Pangkat Terakhir</li>
             <li class="flex items-center gap-2"><i data-lucide="circle-check-big" class="w-4 h-4 text-green-500"></i> SK KGB Terakhir</li>
-            <li class="flex items-center gap-2"><i data-lucide="circle-check-big" class="w-4 h-4 text-green-500"></i> Penilaian Kinerja (SKP)</li>
           </ul>
         </div>
         <div class="glass-card p-8 space-y-4">
@@ -130,8 +129,12 @@ const renderHome = (container: Element) => {
           <h3 class="text-2xl font-bold text-blue-900">Syarat KP</h3>
           <ul class="space-y-3 text-slate-600">
             <li class="flex items-center gap-2"><i data-lucide="circle-check-big" class="w-4 h-4 text-green-500"></i> SK CPNS & PNS</li>
-            <li class="flex items-center gap-2"><i data-lucide="circle-check-big" class="w-4 h-4 text-green-500"></i> Ijazah Terakhir</li>
-            <li class="flex items-center gap-2"><i data-lucide="circle-check-big" class="w-4 h-4 text-green-500"></i> SKP 2 Tahun Terakhir</li>
+            <li class="flex items-center gap-2"><i data-lucide="circle-check-big" class="w-4 h-4 text-green-500"></i> SK Pangkat Terakhir</li>
+            <li class="flex items-center gap-2"><i data-lucide="circle-check-big" class="w-4 h-4 text-green-500"></i> SK Jabatan Terakhir</li>
+            <li class="flex items-center gap-2"><i data-lucide="circle-check-big" class="w-4 h-4 text-green-500"></i> Kartu Pegawai</li>
+            <li class="flex items-center gap-2"><i data-lucide="circle-check-big" class="w-4 h-4 text-green-500"></i> Surat Pernyataan Pelantikan(khusus pejabat)</li>
+            <li class="flex items-center gap-2"><i data-lucide="circle-check-big" class="w-4 h-4 text-green-500"></i> Ijazah & Transkrip Nilai Terakhir</li>
+            <li class="flex items-center gap-2"><i data-lucide="circle-check-big" class="w-4 h-4 text-green-500"></i> SKP 2 Tahun terakhir (ASLI)</li>
           </ul>
         </div>
       </div>
