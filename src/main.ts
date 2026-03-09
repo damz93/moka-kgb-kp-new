@@ -5,7 +5,7 @@ import Swal from 'sweetalert2';
 
 // --- CONFIGURATION ---
 // const GAS_URL = 'https://script.google.com/macros/s/AKfycbxhrCUKHLpYLeTYRFK4xMCaegKcehMWj2l7PoAVHIzByWvrWt7nPqbY6G0CN4yrd8v0tA/exec';
-const GAS_URL = 'https://script.google.com/macros/s/AKfycbxT3ff6dDlfPV7bTmGUQt10FS__nNSYTsIudqlIgrAPZX7y9_49ZYe3mi6mq4w8NFv7NA/exec';
+const GAS_URL = 'https://script.google.com/macros/s/AKfycbxQDQ3NaawSUlapmVfRj1fmDRsBCFAkMOnc0c0O9sjRkRN_-P7zf-pks4Vm8O63SY2rcQ/exec';
 
 // --- STATE MANAGEMENT ---
 let currentPage = 'home';
@@ -121,7 +121,6 @@ const renderHome = (container: Element) => {
           <ul class="space-y-3 text-slate-600">
             <li class="flex items-center gap-2"><i data-lucide="circle-check-big" class="w-4 h-4 text-green-500"></i> SK Pangkat Terakhir</li>
             <li class="flex items-center gap-2"><i data-lucide="circle-check-big" class="w-4 h-4 text-green-500"></i> SK KGB Terakhir</li>
-            <li class="flex items-center gap-2"><i data-lucide="circle-check-big" class="w-4 h-4 text-green-500"></i> Penilaian Kinerja (SKP)</li>
           </ul>
         </div>
         <div class="glass-card p-8 space-y-4">
@@ -151,7 +150,7 @@ const renderCek = (container: Element) => {
       
       <div class="glass-card p-8 space-y-6">
         <div class="space-y-4">
-          <input type="text" id="nik-input" class="input-field text-center text-2xl font-bold tracking-widest" placeholder="MASUKKAN KGB-NIP ANDA ATAU KP-NIP ANDA">
+          <input type="text" id="nik-input" class="input-field text-center text-2xl font-bold tracking-widest" placeholder="MASUKKAN KGB-NIP ATAU KP-NIP ANDA">
           <button id="btn-cek" class="btn-primary">Cari Pengajuan</button>
         </div>
       </div>
