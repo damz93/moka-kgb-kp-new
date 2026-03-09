@@ -7,6 +7,7 @@ import Swal from 'sweetalert2';
 // const GAS_URL = 'https://script.google.com/macros/s/AKfycbxhrCUKHLpYLeTYRFK4xMCaegKcehMWj2l7PoAVHIzByWvrWt7nPqbY6G0CN4yrd8v0tA/exec';
 const GAS_URL = 'https://script.google.com/macros/s/AKfycbxYznBsMDimCFtsiTVM0dXytPKvscUt754VH8k87GcrcrOpaThqCrNTuAao-IQSB4cQeA/exec';
 
+// --- STATE MANAGEMENT ---
 let currentPage = 'home';
 let isAdmin = !!localStorage.getItem('moka_token');
 let adminData: any = null;
@@ -727,21 +728,16 @@ const renderAdminDashboard = (container: HTMLElement) => {
           </div>
           <div class="h-64 flex items-end justify-around gap-4 pt-4">
             ${(() => {
-              const currentYear = new Date().getFullYear();
               const distribution: Record<string, number> = {};
               
               adminData.pegawai.forEach((p: any) => {
+                if (p.status === 'Tidak Aktif') return;
                 const unit = p.unitKerja || p.unit_kerja || p.unitkerja || 'Lainnya';
-                const kpYear = p.tmtKpNext ? new Date(p.tmtKpNext).getFullYear() : null;
-                const kgbYear = p.tmtKgbNext ? new Date(p.tmtKgbNext).getFullYear() : null;
-                
-                if (kpYear === currentYear || kgbYear === currentYear) {
-                  distribution[unit] = (distribution[unit] || 0) + 1;
-                }
+                distribution[unit] = (distribution[unit] || 0) + 1;
               });
 
               const units = Object.keys(distribution);
-              if (units.length === 0) return `<p class="text-slate-400 text-xs italic">Tidak ada data untuk tahun ini</p>`;
+              if (units.length === 0) return `<p class="text-slate-400 text-xs italic">Tidak ada data pegawai aktif</p>`;
 
               const maxCount = Math.max(...Object.values(distribution));
               const colors = ['bg-blue-500', 'bg-indigo-500', 'bg-pink-500', 'bg-red-500', 'bg-amber-500', 'bg-emerald-500'];
@@ -750,7 +746,7 @@ const renderAdminDashboard = (container: HTMLElement) => {
                 const count = distribution[unit];
                 const height = (count / maxCount) * 100;
                 return `
-                  <div class="flex-1 flex flex-col items-center gap-3 group relative">
+                  <div class="flex-1 flex flex-col items-center gap-3 group relative h-full justify-end">
                     <div class="absolute -top-8 bg-slate-800 text-white text-[10px] px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-10">
                       ${count} Pegawai
                     </div>
@@ -824,7 +820,7 @@ const renderAdminDashboard = (container: HTMLElement) => {
               }).join('');
             })()}
           </div>
-          <button onclick="adminTab = 'kp'; renderAdminContent();" class="w-full py-3 text-blue-600 text-xs font-bold hover:bg-blue-50 rounded-xl transition-colors mt-4">Lihat Semua Aktivitas</button>
+          <button onclick="window.showAllActivities()" class="w-full py-3 text-blue-600 text-xs font-bold hover:bg-blue-50 rounded-xl transition-colors mt-4">Lihat Semua Aktivitas</button>
         </div>
       </div>
     </div>
@@ -832,6 +828,8 @@ const renderAdminDashboard = (container: HTMLElement) => {
 };
 
 const renderAdminPegawai = (container: HTMLElement) => {
+  const units = Array.from(new Set(adminData.pegawai.map((p: any) => p.unitKerja || p.unit_kerja || p.unitkerja || 'Lainnya'))).sort();
+  
   container.innerHTML = `
     <div class="animate-fade-in space-y-6">
       <!-- Filters & Actions -->
@@ -839,12 +837,13 @@ const renderAdminPegawai = (container: HTMLElement) => {
         <div class="flex flex-1 w-full md:w-auto gap-4">
           <div class="flex-1 flex items-center bg-slate-50 rounded-2xl px-4 py-3 gap-3 border border-slate-100">
             <i data-lucide="search" class="w-4 h-4 text-slate-400"></i>
-            <input type="text" placeholder="Cari NIP atau Nama..." class="bg-transparent border-none outline-none text-sm w-full">
+            <input type="text" id="pegawai-search" placeholder="Cari NIP atau Nama..." class="bg-transparent border-none outline-none text-sm w-full">
           </div>
           <div class="flex items-center bg-slate-50 rounded-2xl px-4 py-3 gap-3 border border-slate-100 min-w-[120px]">
             <i data-lucide="filter" class="w-4 h-4 text-slate-400"></i>
-            <select class="bg-transparent border-none outline-none text-sm w-full font-medium text-slate-600">
-              <option>Semua Bidang</option>
+            <select id="pegawai-filter-unit" class="bg-transparent border-none outline-none text-sm w-full font-medium text-slate-600">
+              <option value="">Semua Bidang</option>
+              ${units.map(u => `<option value="${u}">${u}</option>`).join('')}
             </select>
           </div>
         </div>
@@ -870,42 +869,72 @@ const renderAdminPegawai = (container: HTMLElement) => {
                 <th class="p-6 font-bold text-right">Aksi</th>
               </tr>
             </thead>
-            <tbody class="text-sm">
-              ${adminData.pegawai.map((p: any) => {
-                const initials = p.nama.split(' ').map((n: any) => n[0]).join('').substring(0, 2).toUpperCase();
-                return `
-                <tr class="border-b border-slate-50 hover:bg-slate-50/50 transition-colors">
-                  <td class="p-6">
-                    <div class="flex items-center gap-4">
-                      <div class="avatar">${initials}</div>
-                      <div>
-                        <p class="font-bold text-slate-800">${p.nama}</p>
-                        <p class="text-[10px] font-mono text-slate-400">${p.nik}</p>
-                      </div>
-                    </div>
-                  </td>
-                  <td class="p-6">
-                    <p class="text-xs font-bold text-slate-600">${p.jabatan}</p>
-                  </td>
-                  <td class="p-6 text-slate-500 text-xs">${p.unitKerja || p.unit_kerja || p.unitkerja || '-'}</td>
-                  <td class="p-6">
-                    <span class="status-badge ${p.status === 'Tidak Aktif' ? 'status-inactive bg-red-50 text-red-500' : 'status-active bg-green-50 text-green-500'}">${p.status || 'Aktif'}</span>
-                  </td>
-                  <td class="p-6 text-right">
-                    <div class="flex justify-end gap-2">
-                      <button onclick="window.editPegawai('${p.nik}')" class="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-all"><i data-lucide="pencil" class="w-4 h-4"></i></button>
-                      <button onclick="window.deletePegawai('${p.nik}')" class="p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-xl transition-all"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
-                    </div>
-                  </td>
-                </tr>
-              `}).join('')}
+            <tbody id="pegawai-table-body" class="text-sm">
+              ${renderPegawaiRows(adminData.pegawai)}
             </tbody>
           </table>
         </div>
       </div>
     </div>
   `;
+
+  const searchInput = $('#pegawai-search') as HTMLInputElement;
+  const unitFilter = $('#pegawai-filter-unit') as HTMLSelectElement;
+  const tbody = $('#pegawai-table-body');
+
+  const filterPegawai = () => {
+    const query = searchInput.value.toLowerCase();
+    const unit = unitFilter.value;
+    
+    const filtered = adminData.pegawai.filter((p: any) => {
+      const matchSearch = p.nama.toLowerCase().includes(query) || p.nik.toString().toLowerCase().includes(query);
+      const matchUnit = !unit || (p.unitKerja || p.unit_kerja || p.unitkerja || 'Lainnya') === unit;
+      return matchSearch && matchUnit;
+    });
+    
+    if (tbody) {
+      tbody.innerHTML = renderPegawaiRows(filtered);
+      createIcons({ icons });
+    }
+  };
+
+  searchInput?.addEventListener('input', filterPegawai);
+  unitFilter?.addEventListener('change', filterPegawai);
+
   createIcons({ icons });
+};
+
+const renderPegawaiRows = (pegawai: any[]) => {
+  if (pegawai.length === 0) return `<tr><td colspan="5" class="p-12 text-center text-slate-400 italic">Tidak ada pegawai ditemukan</td></tr>`;
+  
+  return pegawai.map((p: any) => {
+    const initials = p.nama.split(' ').map((n: any) => n[0]).join('').substring(0, 2).toUpperCase();
+    return `
+    <tr class="border-b border-slate-50 hover:bg-slate-50/50 transition-colors">
+      <td class="p-6">
+        <div class="flex items-center gap-4">
+          <div class="avatar">${initials}</div>
+          <div>
+            <p class="font-bold text-slate-800">${p.nama}</p>
+            <p class="text-[10px] font-mono text-slate-400">${p.nik}</p>
+          </div>
+        </div>
+      </td>
+      <td class="p-6">
+        <p class="text-xs font-bold text-slate-600">${p.jabatan}</p>
+      </td>
+      <td class="p-6 text-slate-500 text-xs">${p.unitKerja || p.unit_kerja || p.unitkerja || '-'}</td>
+      <td class="p-6">
+        <span class="status-badge ${p.status === 'Tidak Aktif' ? 'status-inactive bg-red-50 text-red-500' : 'status-active bg-green-50 text-green-500'}">${p.status || 'Aktif'}</span>
+      </td>
+      <td class="p-6 text-right">
+        <div class="flex justify-end gap-2">
+          <button onclick="window.editPegawai('${p.nik}')" class="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-all"><i data-lucide="pencil" class="w-4 h-4"></i></button>
+          <button onclick="window.deletePegawai('${p.nik}')" class="p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-xl transition-all"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
+        </div>
+      </td>
+    </tr>
+  `}).join('');
 };
 
 const renderAdminMonitoring = (container: HTMLElement, type: 'kp' | 'kgb') => {
@@ -1139,6 +1168,45 @@ const renderAdminMonitoring = (container: HTMLElement, type: 'kp' | 'kgb') => {
   }).then((result) => {
     if (result.isConfirmed) {
       window.open(`https://wa.me/${result.value}?text=${encodedMsg}`, '_blank');
+    }
+  });
+};
+
+(window as any).showAllActivities = () => {
+  const allActivities = [
+    ...adminData.kgb.map((item: any) => ({ ...item, type: 'KGB' })),
+    ...adminData.kp.map((item: any) => ({ ...item, type: 'KP' }))
+  ].sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
+  .slice(0, 10);
+
+  Swal.fire({
+    title: 'Semua Aktivitas Terkini',
+    width: '600px',
+    html: `
+      <div class="text-left space-y-4 max-h-[400px] overflow-y-auto p-2 no-scrollbar">
+        ${allActivities.map(activity => {
+          let colorClass = 'bg-blue-50 text-blue-600';
+          if (activity.status === 'Selesai') colorClass = 'bg-green-50 text-green-600';
+          if (activity.status === 'Ditolak') colorClass = 'bg-red-50 text-red-600';
+          if (activity.status === 'Diproses') colorClass = 'bg-amber-50 text-amber-600';
+
+          return `
+            <div class="p-4 rounded-2xl border border-slate-100 bg-slate-50/30 space-y-2">
+              <div class="flex justify-between items-start">
+                <span class="px-2 py-1 rounded-md text-[10px] font-bold uppercase ${colorClass}">${activity.type} - ${activity.status}</span>
+                <span class="text-[10px] text-slate-400 font-bold">${formatDate(activity.timestamp)}</span>
+              </div>
+              <p class="text-sm font-bold text-slate-800">${activity.nama}</p>
+              <p class="text-[10px] text-slate-500 font-mono">${activity.ticket}</p>
+            </div>
+          `;
+        }).join('')}
+      </div>
+    `,
+    showConfirmButton: false,
+    showCloseButton: true,
+    customClass: {
+      container: 'rounded-3xl'
     }
   });
 };
