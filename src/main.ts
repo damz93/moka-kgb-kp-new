@@ -106,7 +106,7 @@ const renderHome = (container: Element) => {
           Sistem Informasi Monitoring dan Pengajuan Kenaikan Gaji Berkala serta Kenaikan Pangkat secara online dan real-time.
         </p>
         <div class="flex flex-col md:flex-row gap-4 justify-center pt-4">
-          <button data-page="ajukan" class="btn-primary md:w-auto px-10">Ajukan Sekarang</button>
+          <button hidden data-page="ajukan" class="btn-primary md:w-auto px-10">Ajukan Sekarang</button>
           <button data-page="cek" class="px-10 py-4 bg-white text-blue-600 font-bold rounded-2xl border border-blue-100 shadow-sm hover:shadow-md transition-all">Cek Status</button>
         </div>
       </section>
