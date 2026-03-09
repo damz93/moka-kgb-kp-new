@@ -4,7 +4,8 @@ import { createIcons, icons } from 'lucide';
 import Swal from 'sweetalert2';
 
 // --- CONFIGURATION ---
-const GAS_URL = 'https://script.google.com/macros/s/AKfycbxhrCUKHLpYLeTYRFK4xMCaegKcehMWj2l7PoAVHIzByWvrWt7nPqbY6G0CN4yrd8v0tA/exec';
+// const GAS_URL = 'https://script.google.com/macros/s/AKfycbxhrCUKHLpYLeTYRFK4xMCaegKcehMWj2l7PoAVHIzByWvrWt7nPqbY6G0CN4yrd8v0tA/exec';
+const GAS_URL = 'https://script.google.com/macros/s/AKfycbzFVPkT8mnmOX8mnpB_8-tfO4b_SWH7zvNrBzLz6569qsN5DKso779Kc_1gQ-BUPQ0GGA/exec';
 
 // --- STATE MANAGEMENT ---
 let currentPage = 'home';
