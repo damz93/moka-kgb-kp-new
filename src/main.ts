@@ -9,7 +9,7 @@ import Swal from 'sweetalert2';
 // const GAS_URL = 'https://script.google.com/macros/s/AKfycbx18wfWpMC5w3lNZ8gIY24L-FbllGFroFM0FJWEm1kHFdGxwjOPJCcB4JU4sPtMjsbf-A/exec';
 // const GAS_URL = 'https://script.google.com/macros/s/AKfycbyC7hYE5w1_hB3JnSJ_Z_LuEcLaBFChTvHgH30mHFwm2387LBNuJX9zyRWN8YqWH5yJfw/exec';
 //const GAS_URL = 'https://script.google.com/macros/s/AKfycbzorsD488lhGHkTq1tmj1JxhgaPZwcXC1tySDzFCiHMRYnu8eRs-3KdcBmjK3nKJLq8Cg/exec';
-const GAS_URL = 'https://script.google.com/macros/s/AKfycbxtU_3F0vGO6OHTqx_sIS0x4cIUnAl0XB3AuWHmLolH2q7LTNGh570b0cMW2HbTjg_xCg/exec';
+const GAS_URL = 'https://script.google.com/macros/s/AKfycbxx9HDOwfDSxN4O6S9VNQwpgi97spOM7XlXIV2HDVF6w6e_wh95dWEy7gMBgxyCrVzYhQ/exec';
 
 let currentPage = 'home';
 let isAdmin = !!localStorage.getItem('moka_token');
