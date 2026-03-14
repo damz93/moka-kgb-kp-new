@@ -7,6 +7,7 @@ import Swal from 'sweetalert2';
 // const GAS_URL = 'https://script.google.com/macros/s/AKfycbxhrCUKHLpYLeTYRFK4xMCaegKcehMWj2l7PoAVHIzByWvrWt7nPqbY6G0CN4yrd8v0tA/exec';
 const GAS_URL = 'https://script.google.com/macros/s/AKfycbwxKIZQu0D7jrXzIwCNTQwU2KAhjY99wjx4lxlJOmtFEU6nf5ne7-UYKmMdYyfgrBITqg/exec';
 
+// --- STATE MANAGEMENT ---
 let currentPage = 'home';
 let isAdmin = !!localStorage.getItem('moka_token');
 let adminData: any = null;
@@ -105,8 +106,8 @@ const renderHome = (container: Element) => {
           Sistem Informasi Monitoring dan Pengajuan Kenaikan Gaji Berkala serta Kenaikan Pangkat secara online dan real-time.
         </p>
         <div class="flex flex-col md:flex-row gap-4 justify-center pt-4">
-          <button hidden data-page="ajukan" class="btn-primary md:w-auto px-10">Ajukan Sekarang</button>
-          <button data-page="cek" class="btn-primary md:w-auto px-10">Cek Status</button>
+          <button data-page="ajukan" class="btn-primary md:w-auto px-10">Ajukan Sekarang</button>
+          <button data-page="cek" class="px-10 py-4 bg-white text-blue-600 font-bold rounded-2xl border border-blue-100 shadow-sm hover:shadow-md transition-all">Cek Status</button>
         </div>
       </section>
 
@@ -116,25 +117,22 @@ const renderHome = (container: Element) => {
           <div class="w-14 h-14 bg-blue-100 rounded-2xl flex items-center justify-center text-blue-600">
             <i data-lucide="file-text" class="w-8 h-8"></i>
           </div>
-          <h3 class="text-2xl font-bold text-blue-900">Syarat <strong>Kenaikan Gaji Berkala (KGB)</strong></h3>
+          <h3 class="text-2xl font-bold text-blue-900">Syarat KGB</h3>
           <ul class="space-y-3 text-slate-600">
             <li class="flex items-center gap-2"><i data-lucide="circle-check-big" class="w-4 h-4 text-green-500"></i> SK Pangkat Terakhir</li>
             <li class="flex items-center gap-2"><i data-lucide="circle-check-big" class="w-4 h-4 text-green-500"></i> SK KGB Terakhir</li>
+            <li class="flex items-center gap-2"><i data-lucide="circle-check-big" class="w-4 h-4 text-green-500"></i> Penilaian Kinerja (SKP)</li>
           </ul>
         </div>
         <div class="glass-card p-8 space-y-4">
           <div class="w-14 h-14 bg-indigo-100 rounded-2xl flex items-center justify-center text-indigo-600">
             <i data-lucide="users" class="w-8 h-8"></i>
           </div>
-          <h3 class="text-2xl font-bold text-blue-900">Syarat <strong>Kenaikan Pangkat (KP)</strong></h3>
+          <h3 class="text-2xl font-bold text-blue-900">Syarat KP</h3>
           <ul class="space-y-3 text-slate-600">
             <li class="flex items-center gap-2"><i data-lucide="circle-check-big" class="w-4 h-4 text-green-500"></i> SK CPNS & PNS</li>
-            <li class="flex items-center gap-2"><i data-lucide="circle-check-big" class="w-4 h-4 text-green-500"></i> SK Pangkat Terakhir</li>
-            <li class="flex items-center gap-2"><i data-lucide="circle-check-big" class="w-4 h-4 text-green-500"></i> SK Jabatan Terakhir</li>
-            <li class="flex items-center gap-2"><i data-lucide="circle-check-big" class="w-4 h-4 text-green-500"></i> Kartu Pegawai</li>
-            <li class="flex items-center gap-2"><i data-lucide="circle-check-big" class="w-4 h-4 text-green-500"></i> Surat Pernyataan Pelantikan(khusus pejabat)</li>
-            <li class="flex items-center gap-2"><i data-lucide="circle-check-big" class="w-4 h-4 text-green-500"></i> Ijazah & Transkrip Nilai Terakhir</li>
-            <li class="flex items-center gap-2"><i data-lucide="circle-check-big" class="w-4 h-4 text-green-500"></i> SKP 2 Tahun terakhir (ASLI)</li>
+            <li class="flex items-center gap-2"><i data-lucide="circle-check-big" class="w-4 h-4 text-green-500"></i> Ijazah Terakhir</li>
+            <li class="flex items-center gap-2"><i data-lucide="circle-check-big" class="w-4 h-4 text-green-500"></i> SKP 2 Tahun Terakhir</li>
           </ul>
         </div>
       </div>
@@ -148,7 +146,7 @@ const renderCek = (container: Element) => {
     <div class="animate-fade-in max-w-2xl mx-auto space-y-8">
       <div class="text-center space-y-2">
         <h2 class="text-3xl font-bold text-blue-950">Cek Status Pengajuan</h2>
-        <p class="text-slate-500">Masukkan Nomor Tiket (format: KGB-NIP atau KP-NIP anda) untuk melihat status pengajuan</p>
+        <p class="text-slate-500">Masukkan Nomor Tiket Anda untuk melihat status pengajuan</p>
       </div>
       
       <div class="glass-card p-8 space-y-6">
@@ -1015,6 +1013,10 @@ const renderAdminMonitoring = (container: HTMLElement, type: 'kp' | 'kgb') => {
                   const isOverdue = new Date(targetDate) < new Date();
                   const isSoon = isNear(targetDate, type === 'kp' ? 180 : 90);
                   
+                  const diffTime = new Date(targetDate).getTime() - new Date().getTime();
+                  const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                  const daysText = diffDays < 0 ? `Lewat ${Math.abs(diffDays)} Hari` : `Sisa ${diffDays} Hari`;
+                  
                   // Cari pengajuan aktif
                   const requests = type === 'kp' ? adminData.kp : adminData.kgb;
                   const activeRequest = requests.find((r: any) => r.nik.toString() === p.nik.toString());
@@ -1055,7 +1057,7 @@ const renderAdminMonitoring = (container: HTMLElement, type: 'kp' | 'kgb') => {
                           <div class="progress-fill ${isOverdue ? 'bg-red-500' : isSoon ? 'bg-amber-500' : 'bg-blue-500'}" style="width: ${isOverdue ? '100%' : '70%'}"></div>
                         </div>
                         <span class="text-[10px] font-bold uppercase ${isOverdue ? 'text-red-600' : isSoon ? 'text-amber-600' : 'text-slate-400'}">
-                          ${isOverdue ? 'Overdue' : isSoon ? 'Segera' : 'Aman'}
+                          ${daysText}
                         </span>
                       </div>
                     </td>

@@ -3,6 +3,9 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+    <meta http-equiv="Pragma" content="no-cache" />
+    <meta http-equiv="Expires" content="0" />
     <title>MOKA KGB KP - Sistem Pengajuan Online</title>
     <link rel="manifest" href="/manifest.json" />
     <meta name="theme-color" content="#2563eb" />
@@ -25,7 +28,7 @@
         <div class="flex gap-8 items-center">
           <button data-page="home" class="nav-link active">Beranda</button>
           <button data-page="cek" class="nav-link">Cek Pengajuan</button>
-          <!-- <button data-page="ajukan" class="nav-link">Ajukan</button> -->
+          <button data-page="ajukan" class="nav-link">Ajukan</button>
           <button data-page="login" class="bg-blue-600 text-white px-6 py-2 rounded-full font-semibold hover:bg-blue-700 transition-all shadow-md shadow-blue-200">Login Admin</button>
         </div>
       </nav>
@@ -45,10 +48,10 @@
           <i data-lucide="search"></i>
           <span>Cek</span>
         </button>
-        <!-- <button data-page="ajukan" class="mobile-nav-item">
+        <button data-page="ajukan" class="mobile-nav-item">
           <i data-lucide="file-plus"></i>
           <span>Ajukan</span>
-        </button> -->
+        </button>
         <button data-page="login" class="mobile-nav-item">
           <i data-lucide="user"></i>
           <span>Login</span>
@@ -59,10 +62,20 @@
     <script>
       if ('serviceWorker' in navigator) {
         window.addEventListener('load', () => {
-          navigator.serviceWorker.register('/service-worker.js');
+          navigator.serviceWorker.register('/service-worker.js').then(reg => {
+            reg.onupdatefound = () => {
+              const installingWorker = reg.installing;
+              if (installingWorker) {
+                installingWorker.onstatechange = () => {
+                  if (installingWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                    window.location.reload();
+                  }
+                };
+              }
+            };
+          });
         });
       }
     </script>
   </body>
 </html>
-
