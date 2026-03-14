@@ -9,7 +9,8 @@ import Swal from 'sweetalert2';
 // const GAS_URL = 'https://script.google.com/macros/s/AKfycbx18wfWpMC5w3lNZ8gIY24L-FbllGFroFM0FJWEm1kHFdGxwjOPJCcB4JU4sPtMjsbf-A/exec';
 // const GAS_URL = 'https://script.google.com/macros/s/AKfycbyC7hYE5w1_hB3JnSJ_Z_LuEcLaBFChTvHgH30mHFwm2387LBNuJX9zyRWN8YqWH5yJfw/exec';
 //const GAS_URL = 'https://script.google.com/macros/s/AKfycbzorsD488lhGHkTq1tmj1JxhgaPZwcXC1tySDzFCiHMRYnu8eRs-3KdcBmjK3nKJLq8Cg/exec';
-const GAS_URL = 'https://script.google.com/macros/s/AKfycbxviWAQuc53YssIjf4OeG-d-m8wcB4gmFkMBRsQ6vL71yysmxJ4ua-CEGIEp7wVFFoG9w/exec';
+// const GAS_URL = 'https://script.google.com/macros/s/AKfycbxviWAQuc53YssIjf4OeG-d-m8wcB4gmFkMBRsQ6vL71yysmxJ4ua-CEGIEp7wVFFoG9w/exec';
+const GAS_URL = 'https://script.google.com/macros/s/AKfycbxiWLy5vU1xF7dSvnXzM52Tearlrs8X4_73DSUvTWgmc0Da2OAAhGgJsxBHnHtoEZ4wEg/exec';
 
 let currentPage = 'home';
 let isAdmin = !!localStorage.getItem('moka_token');
@@ -427,9 +428,13 @@ const renderAjukan = (container: Element, nik = '', nama = '', kategori = '') =>
           </div>
         </div>
 
-        <div class="space-y-2">
+       <div class="space-y-2">
           <label class="text-sm font-bold text-slate-600 ml-1">Upload Berkas Persyaratan (PDF)</label>
-          <p class="text-[10px] text-slate-400 mb-2 italic">*Gabungkan semua dokumen (SK Pangkat, SKP, dll) dalam satu file PDF</p>
+          <p class="text-[10px] text-slate-400 mb-2 italic">
+            ${kategori === 'KGB' 
+              ? '*Gabungkan: SK Pangkat Terakhir, SK KGB Terakhir dalam satu file PDF' 
+              : '*Gabungkan: SK CPNS & PNS, Ijazah Terakhir, & SKP 2 Tahun Terakhir dalam satu file PDF'}
+          </p>
           <div class="relative group">
             <input type="file" id="file-input" accept=".pdf" required class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10">
             <div class="input-field flex items-center justify-center gap-3 border-dashed border-2 border-blue-200 bg-blue-50/30 group-hover:bg-blue-50 transition-all py-8">

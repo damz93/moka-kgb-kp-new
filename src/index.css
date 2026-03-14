@@ -34,7 +34,7 @@
   }
 
   .nav-link.active {
-    @apply text-white-600;
+    @apply text-blue-600;
   }
 
   .nav-link.active::after {
