@@ -5,9 +5,9 @@ import Swal from 'sweetalert2';
 
 // --- CONFIGURATION ---
 // const GAS_URL = 'https://script.google.com/macros/s/AKfycbxhrCUKHLpYLeTYRFK4xMCaegKcehMWj2l7PoAVHIzByWvrWt7nPqbY6G0CN4yrd8v0tA/exec';
-const GAS_URL = 'https://script.google.com/macros/s/AKfycbwxKIZQu0D7jrXzIwCNTQwU2KAhjY99wjx4lxlJOmtFEU6nf5ne7-UYKmMdYyfgrBITqg/exec';
+// const GAS_URL = 'https://script.google.com/macros/s/AKfycbwxKIZQu0D7jrXzIwCNTQwU2KAhjY99wjx4lxlJOmtFEU6nf5ne7-UYKmMdYyfgrBITqg/exec';
+const GAS_URL = 'https://script.google.com/macros/s/AKfycbx18wfWpMC5w3lNZ8gIY24L-FbllGFroFM0FJWEm1kHFdGxwjOPJCcB4JU4sPtMjsbf-A/exec';
 
-// --- STATE MANAGEMENT ---
 let currentPage = 'home';
 let isAdmin = !!localStorage.getItem('moka_token');
 let adminData: any = null;
@@ -78,8 +78,8 @@ const render = () => {
   // Render Page Content
   switch (currentPage) {
     case 'home': renderHome(main); break;
-    case 'cek': renderCek(main); break;
-    case 'ajukan': renderAjukan(main); break;
+    case 'cek-nip': renderCekNip(main); break;
+    case 'cek-tiket': renderCekTiket(main); break;
     case 'login': isAdmin ? renderAdmin(main) : renderLogin(main); break;
     case 'admin': renderAdmin(main); break;
     default: renderHome(main);
@@ -106,8 +106,12 @@ const renderHome = (container: Element) => {
           Sistem Informasi Monitoring dan Pengajuan Kenaikan Gaji Berkala serta Kenaikan Pangkat secara online dan real-time.
         </p>
         <div class="flex flex-col md:flex-row gap-4 justify-center pt-4">
-          <button data-page="ajukan" class="btn-primary md:w-auto px-10">Ajukan Sekarang</button>
-          <button data-page="cek" class="px-10 py-4 bg-white text-blue-600 font-bold rounded-2xl border border-blue-100 shadow-sm hover:shadow-md transition-all">Cek Status</button>
+          <button data-page="cek-nip" class="btn-primary md:w-auto px-10 flex items-center justify-center gap-2">
+            <i data-lucide="search"></i> Cek NIP / Ajukan
+          </button>
+          <button data-page="cek-tiket" class="px-10 py-4 bg-white text-blue-600 font-bold rounded-2xl border border-blue-100 shadow-sm hover:shadow-md transition-all flex items-center justify-center gap-2">
+            <i data-lucide="ticket"></i> Cek Status Tiket
+          </button>
         </div>
       </section>
 
@@ -141,18 +145,21 @@ const renderHome = (container: Element) => {
   createIcons({ icons });
 };
 
-const renderCek = (container: Element) => {
+const renderCekTiket = (container: Element) => {
   container.innerHTML = `
     <div class="animate-fade-in max-w-2xl mx-auto space-y-8">
       <div class="text-center space-y-2">
-        <h2 class="text-3xl font-bold text-blue-950">Cek Status Pengajuan</h2>
+        <div class="w-16 h-16 bg-blue-100 text-blue-600 rounded-2xl flex items-center justify-center mx-auto mb-4">
+          <i data-lucide="ticket" class="w-8 h-8"></i>
+        </div>
+        <h2 class="text-3xl font-bold text-blue-950">Cek Status Tiket</h2>
         <p class="text-slate-500">Masukkan Nomor Tiket Anda untuk melihat status pengajuan</p>
       </div>
       
       <div class="glass-card p-8 space-y-6">
         <div class="space-y-4">
           <input type="text" id="ticket-input" class="input-field text-center text-2xl font-bold tracking-widest uppercase" placeholder="CONTOH: KGB-19870101...">
-          <button id="btn-cek" class="btn-primary">Cari Pengajuan</button>
+          <button id="btn-cek-tiket" class="btn-primary">Cari Pengajuan</button>
         </div>
       </div>
 
@@ -162,7 +169,7 @@ const renderCek = (container: Element) => {
     </div>
   `;
 
-  $('#btn-cek')?.addEventListener('click', async () => {
+  $('#btn-cek-tiket')?.addEventListener('click', async () => {
     const ticket = (($('#ticket-input') as HTMLInputElement).value || '').trim().toUpperCase();
     if (!ticket) return Swal.fire('Error', 'Masukkan Nomor Tiket Anda', 'error');
 
@@ -233,44 +240,204 @@ const renderCek = (container: Element) => {
       resultDiv.innerHTML = '<p class="text-center text-red-500">Gagal mengambil data. Periksa koneksi atau URL API.</p>';
     }
   });
+  createIcons({ icons });
 };
 
-const renderAjukan = (container: Element) => {
+const renderCekNip = (container: Element) => {
   container.innerHTML = `
     <div class="animate-fade-in max-w-2xl mx-auto space-y-8">
       <div class="text-center space-y-2">
-        <h2 class="text-3xl font-bold text-blue-950">Form Pengajuan</h2>
-        <p class="text-slate-500">Lengkapi data di bawah untuk mengajukan KGB/KP</p>
+        <div class="w-16 h-16 bg-blue-100 text-blue-600 rounded-2xl flex items-center justify-center mx-auto mb-4">
+          <i data-lucide="search" class="w-8 h-8"></i>
+        </div>
+        <h2 class="text-3xl font-bold text-blue-950">Cek Data NIP</h2>
+        <p class="text-slate-500">Masukkan NIP Anda untuk melihat jadwal TMT dan melakukan pengajuan</p>
+      </div>
+      
+      <div class="glass-card p-8 space-y-6">
+        <div class="space-y-4">
+          <input type="text" id="nip-input" class="input-field text-center text-2xl font-bold tracking-widest" placeholder="MASUKKAN 18 DIGIT NIP">
+          <button id="btn-cek-nip" class="btn-primary">Cek Data Pegawai</button>
+        </div>
       </div>
 
-      <form id="form-ajukan" class="glass-card p-8 space-y-6">
-        <div class="space-y-2">
-          <label class="text-sm font-bold text-slate-600 ml-1">NIP</label>
-          <input type="text" name="nik" required class="input-field" placeholder="Masukkan 18 digit NIP">
+      <div id="nip-result" class="hidden animate-fade-in">
+        <!-- Result will be here -->
+      </div>
+    </div>
+  `;
+
+  $('#btn-cek-nip')?.addEventListener('click', async () => {
+    const nip = (($('#nip-input') as HTMLInputElement).value || '').trim();
+    if (!nip) return Swal.fire('Error', 'Masukkan NIP Anda', 'error');
+
+    const resultDiv = $('#nip-result');
+    if (!resultDiv) return;
+
+    resultDiv.innerHTML = '<div class="flex justify-center py-12"><div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div></div>';
+    resultDiv.classList.remove('hidden');
+
+    try {
+      const res = await fetch(`${GAS_URL}?action=checkNIP&nip=${nip}`);
+      const data = await res.json();
+
+      if (!data.success) {
+        resultDiv.innerHTML = `
+          <div class="glass-card p-12 text-center space-y-4">
+            <div class="w-20 h-20 bg-red-100 text-red-600 rounded-full flex items-center justify-center mx-auto">
+              <i data-lucide="user-x" class="w-10 h-10"></i>
+            </div>
+            <h3 class="text-xl font-bold">Data Tidak Terdaftar</h3>
+            <p class="text-slate-500">NIP ${nip} belum terdaftar di database pegawai atau NIP tidak cocok.</p>
+          </div>
+        `;
+      } else {
+        const p = data.data;
+        
+        // Calculate diff days
+        const getDiffDays = (dateStr: string) => {
+          if (!dateStr) return null;
+          const target = new Date(dateStr);
+          const now = new Date();
+          const diffTime = target.getTime() - now.getTime();
+          return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+        };
+
+        const kgbDiff = getDiffDays(p.tmtKgbNext);
+        const kpDiff = getDiffDays(p.tmtKpNext);
+
+        const canAjukanKgb = kgbDiff !== null && kgbDiff <= 90; // 3 months
+        const canAjukanKp = kpDiff !== null && kpDiff <= 180; // 6 months
+
+        resultDiv.innerHTML = `
+          <div class="space-y-6">
+            <div class="glass-card p-8 space-y-6">
+              <div class="flex items-center gap-6 border-b border-white/40 pb-6">
+                <div class="w-20 h-20 bg-blue-600 text-white rounded-3xl flex items-center justify-center text-3xl font-bold shadow-lg shadow-blue-200">
+                  ${p.nama.charAt(0)}
+                </div>
+                <div>
+                  <h3 class="text-2xl font-bold text-blue-950">${p.nama}</h3>
+                  <p class="text-slate-500">NIP: ${p.nik}</p>
+                  <p class="text-xs font-bold text-blue-600 uppercase tracking-widest mt-1">${p.jabatan} • ${p.unitKerja}</p>
+                </div>
+              </div>
+
+              <div class="grid md:grid-cols-2 gap-6">
+                <!-- KGB Card -->
+                <div class="p-6 rounded-3xl border border-slate-100 bg-slate-50/50 space-y-4">
+                  <div class="flex justify-between items-start">
+                    <div class="w-10 h-10 bg-pink-100 text-pink-600 rounded-xl flex items-center justify-center">
+                      <i data-lucide="trending-up" class="w-5 h-5"></i>
+                    </div>
+                    <span class="text-[10px] font-bold uppercase tracking-widest text-slate-400">KGB Berikutnya</span>
+                  </div>
+                  <div>
+                    <p class="text-lg font-bold text-slate-800">${p.tmtKgbNext ? formatDate(p.tmtKgbNext).split(' pukul')[0] : '-'}</p>
+                    <p class="text-xs ${kgbDiff !== null && kgbDiff < 0 ? 'text-red-500' : kgbDiff !== null && kgbDiff <= 90 ? 'text-amber-500' : 'text-slate-400'} font-medium">
+                      ${kgbDiff === null ? 'Data tidak tersedia' : kgbDiff < 0 ? `Terlewat ${Math.abs(kgbDiff)} hari` : `Sisa ${kgbDiff} hari lagi`}
+                    </p>
+                  </div>
+                  ${canAjukanKgb ? `
+                    <button onclick="window.showAjukanForm('${p.nik}', '${p.nama}', 'KGB')" class="w-full py-3 bg-pink-600 text-white rounded-2xl font-bold text-sm hover:bg-pink-700 transition-all shadow-lg shadow-pink-100">Ajukan KGB</button>
+                  ` : `
+                    <div class="py-3 px-4 bg-slate-100 text-slate-400 rounded-2xl text-center text-xs font-medium">
+                      Belum masa pengajuan (Min. 3 bulan)
+                    </div>
+                  `}
+                </div>
+
+                <!-- KP Card -->
+                <div class="p-6 rounded-3xl border border-slate-100 bg-slate-50/50 space-y-4">
+                  <div class="flex justify-between items-start">
+                    <div class="w-10 h-10 bg-blue-100 text-blue-600 rounded-xl flex items-center justify-center">
+                      <i data-lucide="award" class="w-5 h-5"></i>
+                    </div>
+                    <span class="text-[10px] font-bold uppercase tracking-widest text-slate-400">KP Berikutnya</span>
+                  </div>
+                  <div>
+                    <p class="text-lg font-bold text-slate-800">${p.tmtKpNext ? formatDate(p.tmtKpNext).split(' pukul')[0] : '-'}</p>
+                    <p class="text-xs ${kpDiff !== null && kpDiff < 0 ? 'text-red-500' : kpDiff !== null && kpDiff <= 180 ? 'text-amber-500' : 'text-slate-400'} font-medium">
+                      ${kpDiff === null ? 'Data tidak tersedia' : kpDiff < 0 ? `Terlewat ${Math.abs(kpDiff)} hari` : `Sisa ${kpDiff} hari lagi`}
+                    </p>
+                  </div>
+                  ${canAjukanKp ? `
+                    <button onclick="window.showAjukanForm('${p.nik}', '${p.nama}', 'KP')" class="w-full py-3 bg-blue-600 text-white rounded-2xl font-bold text-sm hover:bg-blue-700 transition-all shadow-lg shadow-blue-100">Ajukan KP</button>
+                  ` : `
+                    <div class="py-3 px-4 bg-slate-100 text-slate-400 rounded-2xl text-center text-xs font-medium">
+                      Belum masa pengajuan (Min. 6 bulan)
+                    </div>
+                  `}
+                </div>
+              </div>
+            </div>
+
+            <div id="ajukan-form-container" class="hidden animate-slide-up">
+              <!-- Form will be injected here -->
+            </div>
+          </div>
+        `;
+      }
+      createIcons({ icons });
+    } catch (e) {
+      resultDiv.innerHTML = '<p class="text-center text-red-500">Gagal mengambil data. Periksa koneksi atau URL API.</p>';
+    }
+  });
+  createIcons({ icons });
+};
+
+// Global function to show form
+(window as any).showAjukanForm = (nik: string, nama: string, kategori: string) => {
+  const container = $('#ajukan-form-container');
+  if (!container) return;
+  
+  container.classList.remove('hidden');
+  renderAjukan(container, nik, nama, kategori);
+  
+  // Scroll to form
+  container.scrollIntoView({ behavior: 'smooth' });
+};
+
+const renderAjukan = (container: Element, nik = '', nama = '', kategori = '') => {
+  container.innerHTML = `
+    <div class="glass-card p-8 space-y-6 border-2 border-blue-100">
+      <div class="flex items-center gap-3 mb-2">
+        <div class="w-10 h-10 bg-blue-600 text-white rounded-xl flex items-center justify-center">
+          <i data-lucide="file-plus" class="w-5 h-5"></i>
         </div>
-        <div class="space-y-2">
-          <label class="text-sm font-bold text-slate-600 ml-1">Nama Lengkap</label>
-          <input type="text" name="nama" required class="input-field" placeholder="Nama sesuai SK">
+        <h3 class="text-xl font-bold text-blue-950">Form Pengajuan ${kategori}</h3>
+      </div>
+
+      <form id="form-ajukan" class="space-y-6">
+        <input type="hidden" name="nik" value="${nik}">
+        <input type="hidden" name="nama" value="${nama}">
+        <input type="hidden" name="kategori" value="${kategori}">
+
+        <div class="grid md:grid-cols-2 gap-6">
+          <div class="space-y-2">
+            <label class="text-sm font-bold text-slate-600 ml-1">NIP</label>
+            <input type="text" disabled value="${nik}" class="input-field bg-slate-50 text-slate-400 cursor-not-allowed">
+          </div>
+          <div class="space-y-2">
+            <label class="text-sm font-bold text-slate-600 ml-1">Nama Lengkap</label>
+            <input type="text" disabled value="${nama}" class="input-field bg-slate-50 text-slate-400 cursor-not-allowed">
+          </div>
         </div>
+
         <div class="space-y-2">
-          <label class="text-sm font-bold text-slate-600 ml-1">Kategori Pengajuan</label>
-          <select name="kategori" required class="input-field appearance-none">
-            <option value="KGB">Kenaikan Gaji Berkala (KGB)</option>
-            <option value="KP">Kenaikan Pangkat (KP)</option>
-          </select>
-        </div>
-        <div class="space-y-2">
-          <label class="text-sm font-bold text-slate-600 ml-1">Upload Berkas (PDF)</label>
+          <label class="text-sm font-bold text-slate-600 ml-1">Upload Berkas Persyaratan (PDF)</label>
+          <p class="text-[10px] text-slate-400 mb-2 italic">*Gabungkan semua dokumen (SK Pangkat, SKP, dll) dalam satu file PDF</p>
           <div class="relative group">
             <input type="file" id="file-input" accept=".pdf" required class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10">
             <div class="input-field flex items-center justify-center gap-3 border-dashed border-2 border-blue-200 bg-blue-50/30 group-hover:bg-blue-50 transition-all py-8">
-              <i data-lucide="file-plus" class="w-6 h-6 text-blue-500"></i>
+              <i data-lucide="upload-cloud" class="w-6 h-6 text-blue-500"></i>
               <span id="file-label" class="text-slate-500">Pilih file PDF (Maks 5MB)</span>
             </div>
           </div>
         </div>
+
         <div class="pt-4">
-          <button type="submit" class="btn-primary">Kirim Pengajuan</button>
+          <button type="submit" class="btn-primary w-full py-4 text-lg">Kirim Pengajuan Sekarang</button>
         </div>
       </form>
     </div>
@@ -320,10 +487,16 @@ const renderAjukan = (container: Element) => {
         const data = await res.json();
 
         if (data.success) {
+          let successHtml = `Simpan nomor tiket Anda:<br/><b class="text-2xl text-blue-600">${data.ticket}</b>`;
+          
+          if (data.isNewPegawai) {
+            successHtml += `<br/><br/><div class="p-3 bg-amber-50 text-amber-700 text-xs rounded-xl border border-amber-100"><b>Info:</b> NIP Anda belum terdaftar sebelumnya. Data Anda telah ditambahkan otomatis ke database pegawai.</div>`;
+          }
+
           Swal.fire({
             icon: 'success',
             title: 'Berhasil!',
-            html: `Simpan nomor tiket Anda:<br/><b class="text-2xl text-blue-600">${data.ticket}</b>`,
+            html: successHtml,
             confirmButtonText: 'Selesai'
           }).then(() => {
             currentPage = 'home';
