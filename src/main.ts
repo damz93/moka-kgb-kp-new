@@ -256,7 +256,7 @@ const renderCekNip = (container: Element) => {
       
       <div class="glass-card p-8 space-y-6">
         <div class="space-y-4">
-          <input type="text" id="nip-input" class="input-field text-center text-2xl font-bold tracking-widest" placeholder="MASUKKAN 18 DIGIT NIP">
+          <input type="text" id="nip-input" class="input-field text-center text-base font-bold tracking-widest" placeholder="MASUKKAN 18 DIGIT NIP">
           <button id="btn-cek-nip" class="btn-primary">Cek Data Pegawai</button>
         </div>
       </div>
