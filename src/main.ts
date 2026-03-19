@@ -1187,7 +1187,7 @@ const renderAdminPegawai = (container: HTMLElement) => {
             <i data-lucide="file-plus" class="w-4 h-4"></i> Export
           </button>
           <button onclick="window.editPegawai()" class="flex-1 md:flex-none flex items-center justify-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-2xl text-sm font-bold shadow-lg shadow-blue-200 hover:bg-blue-700 transition-all">
-            <i data-lucide="plus" class="w-4 h-4"></i> Tambah Pegawai
+            <i data-lucide="plus" class="w-4 h-4"></i> Tambah
           </button>
         </div>
       </div>
