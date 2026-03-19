@@ -158,7 +158,7 @@ const renderCekTiket = (container: Element) => {
       
       <div class="glass-card p-8 space-y-6">
         <div class="space-y-4">
-          <input type="text" id="ticket-input" class="input-field text-center text-base font-bold tracking-widest uppercase" placeholder="CONTOH: KGB-19870101...">
+          <input type="text" id="ticket-input" class="input-field text-center text-sm font-bold tracking-widest uppercase" placeholder="Ex: KGB-1993xxxx">
           <button id="btn-cek-tiket" class="btn-primary">Cari Pengajuan</button>
         </div>
       </div>
