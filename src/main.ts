@@ -651,7 +651,7 @@ const renderAdmin = (container: Element) => {
               <input type="text" placeholder="Cari pegawai..." class="bg-transparent border-none outline-none text-sm w-full">
             </div>
             <div class="flex items-center gap-2 md:gap-4 relative">
-              <button class="relative p-2 text-slate-400 hover:text-blue-600 transition-colors">
+              <button onclick="window.showAllActivities()" class="relative p-2 text-slate-400 hover:text-blue-600 transition-colors">
                 <i data-lucide="clock" class="w-5 h-5"></i>
                 <span class="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full border-2 border-white"></span>
               </button>
