@@ -4,7 +4,7 @@ import Swal from 'sweetalert2';
 import * as d3 from 'd3';
 
 // --- CONFIGURATION ---
-const GAS_URL = 'https://script.google.com/macros/s/AKfycby9RFSQo8kuGqOD0FZMvWVJCtL0yWMYf3V5FzC2AFt-sI_bXhWNRVhC3i6_2NxAMr6t-g/exec';
+const GAS_URL = 'https://script.google.com/macros/s/AKfycbxJrhCd8Kvr3eKRH1Hm84jz7ZpqkxVKRl7wzEPSwloDTFGLk1C_ImxLcJEtIuB2Er38pw/exec';
 
 // --- STATE MANAGEMENT ---
 let currentPage = 'home';
