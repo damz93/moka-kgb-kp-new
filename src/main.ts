@@ -1,10 +1,10 @@
 import './index.css';
 import { createIcons, icons } from 'lucide';
 import Swal from 'sweetalert2';
-import { select, scaleOrdinal, schemeTableau10, pie, arc } from 'd3';
+import * as d3 from 'd3';
 
 // --- CONFIGURATION ---
-const GAS_URL = 'https://script.google.com/macros/s/AKfycbzxXxmw9oW4ES7UcP9c6NGG37JhQ8gTMxpGZQbK0hJiWekQEcZTJzhYXJTec3uOHCOebQ/exec';
+const GAS_URL = 'https://script.google.com/macros/s/AKfycby9RFSQo8kuGqOD0FZMvWVJCtL0yWMYf3V5FzC2AFt-sI_bXhWNRVhC3i6_2NxAMr6t-g/exec';
 
 // --- STATE MANAGEMENT ---
 let currentPage = 'home';
@@ -348,6 +348,7 @@ const renderCekNip = (container: Element) => {
                 </div>
 
                 <!-- KP Card -->
+                ${p.asn === 'PNS' ? `
                 <div class="p-6 rounded-3xl border border-slate-100 bg-slate-50/50 space-y-4">
                   <div class="flex justify-between items-start">
                     <div class="w-10 h-10 bg-blue-100 text-blue-600 rounded-xl flex items-center justify-center">
@@ -369,6 +370,15 @@ const renderCekNip = (container: Element) => {
                     </div>
                   `}
                 </div>
+                ` : `
+                <div class="p-6 rounded-3xl border border-slate-100 bg-slate-50/50 flex flex-col items-center justify-center text-center space-y-2 opacity-60">
+                  <div class="w-10 h-10 bg-slate-100 text-slate-400 rounded-xl flex items-center justify-center">
+                    <i data-lucide="award" class="w-5 h-5"></i>
+                  </div>
+                  <p class="text-xs font-bold text-slate-500">KP Hanya untuk PNS</p>
+                  <p class="text-[10px] text-slate-400">Status Anda: ${p.asn || '-'}</p>
+                </div>
+                `}
               </div>
             </div>
 
@@ -879,11 +889,11 @@ const renderDistributionPieChart = () => {
 
   const color = d3.scaleOrdinal(d3.schemeTableau10);
 
-  const pie = d3.pie<any>()
+  const pieGenerator = d3.pie<any>()
     .value((d: any) => d.value)
     .sort(null);
 
-  const arc = d3.arc<any>()
+  const arcGenerator = d3.arc<any>()
     .innerRadius(0) // Full Pie Chart
     .outerRadius(radius - 20);
 
@@ -892,10 +902,10 @@ const renderDistributionPieChart = () => {
     .outerRadius(radius - 5);
 
   const slices = svg.selectAll('path')
-    .data(pie(data))
+    .data(pieGenerator(data))
     .enter()
     .append('path')
-    .attr('d', arc)
+    .attr('d', arcGenerator)
     .attr('fill', (d: any) => color(d.data.name) as string)
     .attr('stroke', 'white')
     .style('stroke-width', '2px')
@@ -920,7 +930,7 @@ const renderDistributionPieChart = () => {
         .style('top', (event.pageY - 20) + 'px');
     })
     .on('mouseout', function () {
-      d3.select(this).attr('d', arc);
+      d3.select(this).attr('d', arcGenerator);
       tooltip.transition().duration(200).style('opacity', 0).style('display', 'none');
     })
     .on('click', (event, d: any) => {
@@ -1173,8 +1183,9 @@ const renderAdminPegawai = (container: HTMLElement) => {
           <table class="w-full text-left border-collapse">
             <thead>
               <tr class="text-slate-400 text-[10px] uppercase tracking-widest border-b border-slate-50 bg-slate-50/50">
-                <th class="p-4 font-bold">NIK</th>
+                <th class="p-4 font-bold">NIP</th>
                 <th class="p-4 font-bold">Nama</th>
+                <th class="p-4 font-bold">ASN</th>
                 <th class="p-4 font-bold">Jabatan</th>
                 <th class="p-4 font-bold">Unit Kerja</th>
                 <th class="p-4 font-bold">Lokasi Kerja</th>
@@ -1224,13 +1235,14 @@ const renderAdminPegawai = (container: HTMLElement) => {
 };
 
 const renderPegawaiRows = (pegawai: any[]) => {
-  if (pegawai.length === 0) return `<tr><td colspan="9" class="p-12 text-center text-slate-400 italic">Tidak ada pegawai ditemukan</td></tr>`;
+  if (pegawai.length === 0) return `<tr><td colspan="10" class="p-12 text-center text-slate-400 italic">Tidak ada pegawai ditemukan</td></tr>`;
   
   return pegawai.map((p: any) => {
     return `
     <tr class="border-b border-slate-50 hover:bg-slate-50/50 transition-colors">
       <td class="p-4 font-mono text-xs text-slate-500">${p.nik}</td>
       <td class="p-4 font-bold text-slate-800">${p.nama}</td>
+      <td class="p-4 text-xs font-bold text-blue-600">${p.asn || '-'}</td>
       <td class="p-4 text-xs font-bold text-slate-600">${p.jabatan}</td>
       <td class="p-4 text-slate-500 text-xs">${p.unitKerja || p.unit_kerja || p.unitkerja || '-'}</td>
       <td class="p-4 text-slate-500 text-xs">${p.lokasiKerja || p.lokasi_kerja || p.lokasikerja || '-'}</td>
@@ -1263,6 +1275,9 @@ const renderAdminMonitoring = (container: HTMLElement, type: 'kp' | 'kgb') => {
 
   // Filter pegawai yang "Soon" atau "Overdue"
   const filteredPegawai = adminData.pegawai.filter((p: any) => {
+    // Filter ASN PNS untuk KP
+    if (type === 'kp' && p.asn !== 'PNS') return false;
+
     const targetDate = type === 'kp' ? p.tmtKpNext : p.tmtKgbNext;
     if (!targetDate) return false;
     const isOverdue = new Date(targetDate) < new Date();
@@ -1552,6 +1567,14 @@ const renderAdminMonitoring = (container: HTMLElement, type: 'kp' | 'kgb') => {
           <input id="swal-nik" class="input-field mt-1" placeholder="NIP" value="${p?.nik || ''}" ${nik ? 'disabled' : ''}>
         </div>
         <div>
+          <label class="text-xs font-bold text-slate-400">Status ASN</label>
+          <select id="swal-asn" class="input-field mt-1">
+            <option value="PNS" ${p?.asn === 'PNS' ? 'selected' : ''}>PNS</option>
+            <option value="PPPK" ${p?.asn === 'PPPK' ? 'selected' : ''}>PPPK</option>
+            <option value="Honorer" ${p?.asn === 'Honorer' ? 'selected' : ''}>Honorer</option>
+          </select>
+        </div>
+        <div>
           <label class="text-xs font-bold text-slate-400">Nama Lengkap</label>
           <input id="swal-nama" class="input-field mt-1" placeholder="Nama Lengkap" value="${p?.nama || ''}">
         </div>
@@ -1599,6 +1622,7 @@ const renderAdminMonitoring = (container: HTMLElement, type: 'kp' | 'kgb') => {
       }
       return {
         nik: nikVal,
+        asn: (document.getElementById('swal-asn') as HTMLSelectElement).value,
         nama: namaVal,
         jabatan: (document.getElementById('swal-jabatan') as HTMLInputElement).value,
         unitKerja: (document.getElementById('swal-unit') as HTMLInputElement).value,
@@ -1638,10 +1662,11 @@ const renderAdminMonitoring = (container: HTMLElement, type: 'kp' | 'kgb') => {
 (window as any).exportPegawai = () => {
   if (!adminData || !adminData.pegawai) return;
   
-  const headers = ['NIP', 'Nama', 'Jabatan', 'Unit Kerja', 'Lokasi Kerja', 'TMT KGB', 'TMT KP', 'Status'];
+  const headers = ['NIP', 'Nama', 'ASN', 'Jabatan', 'Unit Kerja', 'Lokasi Kerja', 'TMT KGB', 'TMT KP', 'Status'];
   const rows = adminData.pegawai.map((p: any) => [
     p.nik,
     p.nama,
+    p.asn || '-',
     p.jabatan,
     p.unitKerja || p.unit_kerja || p.unitkerja || '',
     p.lokasiKerja || p.lokasi_kerja || p.lokasikerja || '',

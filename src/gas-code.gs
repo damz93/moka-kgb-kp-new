@@ -10,7 +10,7 @@
  * 
  * SPREADSHEET COLUMNS:
  * - Pengajuan: Ticket, NIK, Nama, Kategori, Status, FileID, Timestamp, Timeline
- * - Pegawai: NIK, Nama, Jabatan
+ * - Pegawai: NIK, Nama, Jabatan, Unit Kerja, Lokasi Kerja, TMT KGB Next, TMT KP Next, Status, ASN
  * - Admin: Username, Password, Token
  */
 
@@ -47,6 +47,14 @@ function doPost(e) {
     return handleUpdateStatus(data);
   }
 
+  if (action === 'savePegawai') {
+    return handleSavePegawai(data);
+  }
+
+  if (action === 'deletePegawai') {
+    return handleDeletePegawai(data);
+  }
+
   return createResponse({ success: false, message: 'Invalid action' });
 }
 
@@ -77,6 +85,7 @@ function handleCheckTicket(ticket) {
           nama: rows[i][2],
           kategori: rows[i][3],
           status: rows[i][4],
+          timestamp: rows[i][6],
           timeline: timeline
         }
       });
@@ -147,7 +156,8 @@ function handleGetAdminData(token) {
       nik: pengajuan[i][1],
       nama: pengajuan[i][2],
       kategori: pengajuan[i][3],
-      status: pengajuan[i][4]
+      status: pengajuan[i][4],
+      timestamp: pengajuan[i][6]
     };
     
     if (item.kategori === 'KGB') kgb.push(item);
@@ -159,15 +169,25 @@ function handleGetAdminData(token) {
   
   const masterPegawai = [];
   for (let i = 1; i < pegawai.length; i++) {
-    masterPegawai.push({ nik: pegawai[i][0], nama: pegawai[i][1], jabatan: pegawai[i][2] });
+    masterPegawai.push({ 
+      nik: pegawai[i][0], 
+      nama: pegawai[i][1], 
+      jabatan: pegawai[i][2],
+      unitKerja: pegawai[i][3],
+      lokasiKerja: pegawai[i][4],
+      tmtKgbNext: pegawai[i][5],
+      tmtKpNext: pegawai[i][6],
+      status: pegawai[i][7],
+      asn: pegawai[i][8]
+    });
   }
   
   return createResponse({
     success: true,
     data: {
       stats: { kgb: kgb.length, kp: kp.length, pending, selesai },
-      kgb: kgb.slice(-10).reverse(),
-      kp: kp.slice(-10).reverse(),
+      kgb: kgb.reverse(),
+      kp: kp.reverse(),
       pegawai: masterPegawai,
       charts: {
         monthly: { labels: ['Jan', 'Feb', 'Mar', 'Apr', 'Mei'], values: [12, 19, 3, 5, 2] },
@@ -192,6 +212,59 @@ function handleUpdateStatus(data) {
   }
   
   return createResponse({ success: false, message: 'Ticket not found' });
+}
+
+function handleSavePegawai(data) {
+  if (!validateToken(data.token)) return createResponse({ success: false, message: 'Unauthorized' });
+  
+  const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+  const sheet = ss.getSheetByName('Pegawai');
+  const rows = sheet.getDataRange().getValues();
+  
+  let foundIndex = -1;
+  for (let i = 1; i < rows.length; i++) {
+    if (rows[i][0].toString() === data.nik.toString()) {
+      foundIndex = i + 1;
+      break;
+    }
+  }
+  
+  const rowData = [
+    data.nik, 
+    data.nama, 
+    data.jabatan, 
+    data.unitKerja, 
+    data.lokasiKerja, 
+    data.tmtKgbNext, 
+    data.tmtKpNext, 
+    data.status,
+    data.asn
+  ];
+  
+  if (foundIndex !== -1) {
+    sheet.getRange(foundIndex, 1, 1, 9).setValues([rowData]);
+  } else {
+    sheet.appendRow(rowData);
+  }
+  
+  return createResponse({ success: true });
+}
+
+function handleDeletePegawai(data) {
+  if (!validateToken(data.token)) return createResponse({ success: false, message: 'Unauthorized' });
+  
+  const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+  const sheet = ss.getSheetByName('Pegawai');
+  const rows = sheet.getDataRange().getValues();
+  
+  for (let i = 1; i < rows.length; i++) {
+    if (rows[i][0].toString() === data.nik.toString()) {
+      sheet.deleteRow(i + 1);
+      return createResponse({ success: true });
+    }
+  }
+  
+  return createResponse({ success: false, message: 'Pegawai not found' });
 }
 
 function validateToken(token) {
