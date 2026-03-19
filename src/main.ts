@@ -1,7 +1,7 @@
 import './index.css';
 import { createIcons, icons } from 'lucide';
 import Swal from 'sweetalert2';
-import * as d3 from 'd3';
+import { select, scaleOrdinal, schemeTableau10, pie, arc } from 'd3';
 
 // --- CONFIGURATION ---
 const GAS_URL = 'https://script.google.com/macros/s/AKfycbzxXxmw9oW4ES7UcP9c6NGG37JhQ8gTMxpGZQbK0hJiWekQEcZTJzhYXJTec3uOHCOebQ/exec';
