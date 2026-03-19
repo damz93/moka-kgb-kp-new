@@ -1584,6 +1584,7 @@ const renderAdminMonitoring = (container: HTMLElement, type: 'kp' | 'kgb') => {
           <label class="text-xs font-bold text-slate-400">Status ASN</label>
           <select id="swal-asn" class="input-field mt-1">
             <option value="PNS" ${p?.asn === 'PNS' ? 'selected' : ''}>PNS</option>
+            <option value="CPNS" ${p?.asn === 'CPNS' ? 'selected' : ''}>CPNS</option>
             <option value="PPPK" ${p?.asn === 'PPPK' ? 'selected' : ''}>PPPK</option>
             <option value="Honorer" ${p?.asn === 'Honorer' ? 'selected' : ''}>Honorer</option>
           </select>
