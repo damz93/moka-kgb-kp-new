@@ -646,7 +646,7 @@ const renderAdmin = (container: Element) => {
             <p class="text-[10px] md:text-xs text-slate-400">Sistem Monitoring Kepegawaian</p>
           </div>
           <div class="flex items-center gap-3 md:gap-6">
-            <div class="hidden lg:flex items-center bg-slate-100 rounded-full px-4 py-2 gap-2 w-64">
+            <div hidden class="hidden lg:flex items-center bg-slate-100 rounded-full px-4 py-2 gap-2 w-64">
               <i data-lucide="search" class="w-4 h-4 text-slate-400"></i>
               <input type="text" placeholder="Cari pegawai..." class="bg-transparent border-none outline-none text-sm w-full">
             </div>
@@ -1148,26 +1148,40 @@ const renderAdminPegawai = (container: HTMLElement) => {
     <div class="animate-fade-in space-y-6">
       <!-- Filters & Actions -->
       <div class="bg-white p-4 rounded-3xl shadow-sm border border-slate-100 flex flex-col md:flex-row justify-between items-center gap-4">
-        <div class="flex flex-1 w-full md:w-auto gap-4">
-          <div class="flex-1 flex items-center bg-slate-50 rounded-2xl px-4 py-3 gap-3 border border-slate-100">
-            <i data-lucide="search" class="w-4 h-4 text-slate-400"></i>
-            <input type="text" id="pegawai-search" placeholder="Cari NIP atau Nama..." class="bg-transparent border-none outline-none text-sm w-full">
-          </div>
-          <div class="flex items-center bg-slate-50 rounded-2xl px-4 py-3 gap-3 border border-slate-100 min-w-[120px]">
-            <i data-lucide="filter" class="w-4 h-4 text-slate-400"></i>
-            <select id="pegawai-filter-unit" class="bg-transparent border-none outline-none text-sm w-full font-medium text-slate-600">
-              <option value="">Semua Bidang</option>
-              ${units.map(u => `<option value="${u}">${u}</option>`).join('')}
-            </select>
-          </div>
-          <div class="flex items-center bg-slate-50 rounded-2xl px-4 py-3 gap-3 border border-slate-100 min-w-[120px]">
-            <i data-lucide="map-pin" class="w-4 h-4 text-slate-400"></i>
-            <select id="pegawai-filter-lokasi" class="bg-transparent border-none outline-none text-sm w-full font-medium text-slate-600">
-              <option value="">Semua Lokasi</option>
-              ${locations.map(l => `<option value="${l}">${l}</option>`).join('')}
-            </select>
-          </div>
-        </div>
+        <div class="flex flex-col w-full gap-4">
+
+  <!-- SEARCH (FULL WIDTH DI ATAS) -->
+  <div class="w-full flex items-center bg-slate-50 rounded-2xl px-4 py-3 gap-3 border border-slate-100">
+    <i data-lucide="search" class="w-4 h-4 text-slate-400"></i>
+    <input 
+      type="text" 
+      id="pegawai-search" 
+      placeholder="Cari NIP atau Nama..." 
+      class="bg-transparent border-none outline-none text-sm w-full">
+  </div>
+
+  <!-- FILTER DI BAWAH -->
+  <div class="flex flex-col md:flex-row gap-4">
+
+    <div class="flex items-center bg-slate-50 rounded-2xl px-4 py-3 gap-3 border border-slate-100 w-full md:w-auto">
+      <i data-lucide="filter" class="w-4 h-4 text-slate-400"></i>
+      <select id="pegawai-filter-unit" class="bg-transparent border-none outline-none text-sm w-full font-medium text-slate-600">
+        <option value="">Semua Bidang</option>
+        ${units.map(u => `<option value="${u}">${u}</option>`).join('')}
+      </select>
+    </div>
+
+    <div class="flex items-center bg-slate-50 rounded-2xl px-4 py-3 gap-3 border border-slate-100 w-full md:w-auto">
+      <i data-lucide="map-pin" class="w-4 h-4 text-slate-400"></i>
+      <select id="pegawai-filter-lokasi" class="bg-transparent border-none outline-none text-sm w-full font-medium text-slate-600">
+        <option value="">Semua Lokasi</option>
+        ${locations.map(l => `<option value="${l}">${l}</option>`).join('')}
+      </select>
+    </div>
+
+  </div>
+
+</div>
         <div class="flex gap-3 w-full md:w-auto">
           <button onclick="window.exportPegawai()" class="flex-1 md:flex-none flex items-center justify-center gap-2 px-6 py-3 bg-white border border-slate-200 rounded-2xl text-sm font-bold text-slate-600 hover:bg-slate-50 transition-all">
             <i data-lucide="file-plus" class="w-4 h-4"></i> Export
