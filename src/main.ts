@@ -1,7 +1,7 @@
-
 import './index.css';
 import { createIcons, icons } from 'lucide';
 import Swal from 'sweetalert2';
+import * as d3 from 'd3';
 
 // --- CONFIGURATION ---
 // const GAS_URL = 'https://script.google.com/macros/s/AKfycbxhrCUKHLpYLeTYRFK4xMCaegKcehMWj2l7PoAVHIzByWvrWt7nPqbY6G0CN4yrd8v0tA/exec';
@@ -428,11 +428,11 @@ const renderAjukan = (container: Element, nik = '', nama = '', kategori = '') =>
           </div>
         </div>
 
-       <div class="space-y-2">
+        <div class="space-y-2">
           <label class="text-sm font-bold text-slate-600 ml-1">Upload Berkas Persyaratan (PDF)</label>
           <p class="text-[10px] text-slate-400 mb-2 italic">
             ${kategori === 'KGB' 
-              ? '*Gabungkan: SK Pangkat Terakhir, SK KGB Terakhir dalam satu file PDF' 
+              ? '*Gabungkan: SK Pangkat Terakhir, SK KGB Terakhir, & SKP Terakhir dalam satu file PDF' 
               : '*Gabungkan: SK CPNS & PNS, Ijazah Terakhir, & SKP 2 Tahun Terakhir dalam satu file PDF'}
           </p>
           <div class="relative group">
@@ -840,6 +840,131 @@ const renderMonthlyList = () => {
   `;
 };
 
+
+const renderDistributionPieChart = () => {
+  const container = document.getElementById('distribution-chart-container');
+  const legendContainer = document.getElementById('distribution-legend');
+  if (!container || !legendContainer || !adminData || !adminData.pegawai) return;
+
+  // Clear previous content
+  container.innerHTML = '';
+  legendContainer.innerHTML = '';
+
+  // Calculate distribution
+  const distribution: { [key: string]: number } = {};
+  adminData.pegawai.forEach((p: any) => {
+    const unit = p.unitKerja || p.unit_kerja || p.unitkerja || 'Lainnya';
+    distribution[unit] = (distribution[unit] || 0) + 1;
+  });
+
+  const data = Object.entries(distribution).map(([name, value]) => ({ name, value }));
+  if (data.length === 0) {
+    container.innerHTML = '<p class="text-slate-400 text-xs italic">Tidak ada data pegawai</p>';
+    return;
+  }
+
+  const width = 250;
+  const height = 250;
+  const radius = Math.min(width, height) / 2;
+
+  const svg = d3.select(container)
+    .append('svg')
+    .attr('width', width)
+    .attr('height', height)
+    .append('g')
+    .attr('transform', `translate(${width / 2}, ${height / 2})`);
+
+  const color = d3.scaleOrdinal(d3.schemeTableau10);
+
+  const pie = d3.pie<any>()
+    .value((d: any) => d.value)
+    .sort(null);
+
+  const arc = d3.arc<any>()
+    .innerRadius(radius * 0.5) // Donut chart
+    .outerRadius(radius * 0.8);
+
+  const hoverArc = d3.arc<any>()
+    .innerRadius(radius * 0.5)
+    .outerRadius(radius * 0.9);
+
+  const slices = svg.selectAll('path')
+    .data(pie(data))
+    .enter()
+    .append('path')
+    .attr('d', arc)
+    .attr('fill', (d: any) => color(d.data.name) as string)
+    .attr('stroke', 'white')
+    .style('stroke-width', '2px')
+    .style('cursor', 'pointer')
+    .style('transition', 'all 0.3s ease');
+
+  // Tooltip
+  const tooltip = d3.select('body').append('div')
+    .attr('class', 'fixed hidden bg-slate-900 text-white px-3 py-2 rounded-lg text-xs font-bold pointer-events-none z-[9999] shadow-xl')
+    .style('opacity', 0);
+
+  slices
+    .on('mouseover', function (event, d: any) {
+      d3.select(this).attr('d', hoverArc);
+      tooltip.transition().duration(200).style('opacity', 1).style('display', 'block');
+      tooltip.html(`${d.data.name}: ${d.data.value} Orang`)
+        .style('left', (event.pageX + 10) + 'px')
+        .style('top', (event.pageY - 20) + 'px');
+    })
+    .on('mousemove', function (event) {
+      tooltip.style('left', (event.pageX + 10) + 'px')
+        .style('top', (event.pageY - 20) + 'px');
+    })
+    .on('mouseout', function () {
+      d3.select(this).attr('d', arc);
+      tooltip.transition().duration(200).style('opacity', 0).style('display', 'none');
+    })
+    .on('click', (event, d: any) => {
+      (window as any).showUnitDetails(d.data.name);
+    });
+
+  // Render Legend
+  data.forEach((d, i) => {
+    const legendItem = document.createElement('button');
+    legendItem.className = 'flex items-center gap-2 px-3 py-1.5 rounded-full border border-slate-100 hover:bg-slate-50 transition-all text-[10px] font-bold text-slate-600';
+    legendItem.onclick = () => (window as any).showUnitDetails(d.name);
+    legendItem.innerHTML = `
+      <span class="w-2 h-2 rounded-full" style="background-color: ${color(d.name)}"></span>
+      <span>${d.name} (${d.value})</span>
+    `;
+    legendContainer.appendChild(legendItem);
+  });
+};
+
+(window as any).showUnitDetails = (unitName: string) => {
+  const employees = adminData.pegawai.filter((p: any) => (p.unitKerja || p.unit_kerja || p.unitkerja || 'Lainnya') === unitName);
+  
+  Swal.fire({
+    title: `Pegawai di ${unitName}`,
+    html: `
+      <div class="text-left space-y-2 max-h-[400px] overflow-y-auto p-2 no-scrollbar">
+        ${employees.map((p: any) => `
+          <div class="flex items-center gap-3 p-3 rounded-xl border border-slate-50 bg-slate-50/50">
+            <div class="w-8 h-8 bg-blue-100 text-blue-600 rounded-lg flex items-center justify-center font-bold text-xs">
+              ${p.nama.charAt(0)}
+            </div>
+            <div>
+              <p class="text-sm font-bold text-slate-800">${p.nama}</p>
+              <p class="text-[10px] text-slate-400 font-mono">${p.nik}</p>
+            </div>
+          </div>
+        `).join('')}
+      </div>
+    `,
+    showConfirmButton: false,
+    showCloseButton: true,
+    customClass: {
+      container: 'rounded-3xl'
+    }
+  });
+};
+
 const renderAdminDashboard = (container: HTMLElement) => {
   container.innerHTML = `
     <div class="animate-fade-in space-y-8">
@@ -906,36 +1031,11 @@ const renderAdminDashboard = (container: HTMLElement) => {
               Tahun ${new Date().getFullYear()}
             </div>
           </div>
-          <div class="h-64 flex items-end justify-around gap-4 pt-4">
-            ${(() => {
-              const distribution: Record<string, number> = {};
-              
-              adminData.pegawai.forEach((p: any) => {
-                if (p.status === 'Tidak Aktif') return;
-                const unit = p.unitKerja || p.unit_kerja || p.unitkerja || 'Lainnya';
-                distribution[unit] = (distribution[unit] || 0) + 1;
-              });
-
-              const units = Object.keys(distribution);
-              if (units.length === 0) return `<p class="text-slate-400 text-xs italic">Tidak ada data pegawai aktif</p>`;
-
-              const maxCount = Math.max(...Object.values(distribution));
-              const colors = ['bg-blue-500', 'bg-indigo-500', 'bg-pink-500', 'bg-red-500', 'bg-amber-500', 'bg-emerald-500'];
-
-              return units.map((unit, i) => {
-                const count = distribution[unit];
-                const height = (count / maxCount) * 100;
-                return `
-                  <div class="flex-1 flex flex-col items-center gap-3 group relative h-full justify-end">
-                    <div class="absolute -top-8 bg-slate-800 text-white text-[10px] px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-10">
-                      ${count} Pegawai
-                    </div>
-                    <div class="w-full ${colors[i % colors.length]} rounded-t-lg transition-all duration-500" style="height: ${height}%"></div>
-                    <span class="text-[10px] text-slate-400 font-bold truncate w-full text-center" title="${unit}">${unit}</span>
-                  </div>
-                `;
-              }).join('');
-            })()}
+          <div id="distribution-chart-container" class="h-64 flex items-center justify-center pt-4 relative">
+            <!-- Pie Chart will be rendered here -->
+          </div>
+          <div id="distribution-legend" class="flex flex-wrap justify-center gap-4 pt-4 border-t border-slate-50">
+            <!-- Legend will be rendered here -->
           </div>
         </div>
 
@@ -1005,6 +1105,9 @@ const renderAdminDashboard = (container: HTMLElement) => {
       </div>
     </div>
   `;
+
+  // Render D3 Chart
+  setTimeout(() => renderDistributionPieChart(), 100);
 };
 
 const renderAdminPegawai = (container: HTMLElement) => {
