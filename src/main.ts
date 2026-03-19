@@ -646,12 +646,12 @@ const renderAdmin = (container: Element) => {
             <p class="text-[10px] md:text-xs text-slate-400">Sistem Monitoring Kepegawaian</p>
           </div>
           <div class="flex items-center gap-3 md:gap-6">
-            <div hidden class="hidden lg:flex items-center bg-slate-100 rounded-full px-4 py-2 gap-2 w-64">
+            <div class="hidden lg:flex items-center bg-slate-100 rounded-full px-4 py-2 gap-2 w-64">
               <i data-lucide="search" class="w-4 h-4 text-slate-400"></i>
               <input type="text" placeholder="Cari pegawai..." class="bg-transparent border-none outline-none text-sm w-full">
             </div>
             <div class="flex items-center gap-2 md:gap-4 relative">
-              <button onclick="window.showAllActivities()" class="relative p-2 text-slate-400 hover:text-blue-600 transition-colors">
+              <button class="relative p-2 text-slate-400 hover:text-blue-600 transition-colors">
                 <i data-lucide="clock" class="w-5 h-5"></i>
                 <span class="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full border-2 border-white"></span>
               </button>
@@ -804,7 +804,13 @@ const renderMonthlyList = () => {
   const month = parseInt(monthFilter.value);
   const year = parseInt(yearFilter.value);
 
-  const allRequests = [...adminData.kgb, ...adminData.kp];
+  const allRequests = [
+    ...adminData.kgb,
+    ...adminData.kp.filter((item: any) => {
+      const p = adminData.pegawai.find((pg: any) => pg.nik.toString() === item.nik.toString());
+      return p ? p.asn === 'PNS' : true;
+    })
+  ];
   const filtered = allRequests.filter(item => {
     const date = new Date(item.timestamp);
     return date.getMonth() === month && date.getFullYear() === year;
@@ -1006,7 +1012,7 @@ const renderAdminDashboard = (container: HTMLElement) => {
           <div>
             <p class="text-slate-400 text-xs font-medium">Jatuh Tempo Kenaikan Pangkat</p>
             <div class="flex items-baseline gap-2">
-              <h4 class="text-3xl font-bold text-slate-800">${adminData.pegawai.filter((p: any) => isNear(p.tmtKpNext, 180)).length}</h4>
+              <h4 class="text-3xl font-bold text-slate-800">${adminData.pegawai.filter((p: any) => p.asn === 'PNS' && isNear(p.tmtKpNext, 180)).length}</h4>
               <span class="text-[10px] text-slate-400 font-medium">6 bulan ke depan</span>
             </div>
           </div>
@@ -1064,7 +1070,10 @@ const renderAdminDashboard = (container: HTMLElement) => {
             ${(() => {
               const allActivities = [
                 ...adminData.kgb.map((item: any) => ({ ...item, type: 'KGB' })),
-                ...adminData.kp.map((item: any) => ({ ...item, type: 'KP' }))
+                ...adminData.kp.filter((item: any) => {
+                  const p = adminData.pegawai.find((pg: any) => pg.nik.toString() === item.nik.toString());
+                  return p ? p.asn === 'PNS' : true;
+                }).map((item: any) => ({ ...item, type: 'KP' }))
               ].sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
               .slice(0, 5);
 
@@ -1148,46 +1157,32 @@ const renderAdminPegawai = (container: HTMLElement) => {
     <div class="animate-fade-in space-y-6">
       <!-- Filters & Actions -->
       <div class="bg-white p-4 rounded-3xl shadow-sm border border-slate-100 flex flex-col md:flex-row justify-between items-center gap-4">
-        <div class="flex flex-col w-full gap-4">
-
-  <!-- SEARCH (FULL WIDTH DI ATAS) -->
-  <div class="w-full flex items-center bg-slate-50 rounded-2xl px-4 py-3 gap-3 border border-slate-100">
-    <i data-lucide="search" class="w-4 h-4 text-slate-400"></i>
-    <input 
-      type="text" 
-      id="pegawai-search" 
-      placeholder="Cari NIP atau Nama..." 
-      class="bg-transparent border-none outline-none text-sm w-full">
-  </div>
-
-  <!-- FILTER DI BAWAH -->
-  <div class="flex flex-col md:flex-row gap-4">
-
-    <div class="flex items-center bg-slate-50 rounded-2xl px-4 py-3 gap-3 border border-slate-100 w-full md:w-auto">
-      <i data-lucide="filter" class="w-4 h-4 text-slate-400"></i>
-      <select id="pegawai-filter-unit" class="bg-transparent border-none outline-none text-sm w-full font-medium text-slate-600">
-        <option value="">Semua Bidang</option>
-        ${units.map(u => `<option value="${u}">${u}</option>`).join('')}
-      </select>
-    </div>
-
-    <div class="flex items-center bg-slate-50 rounded-2xl px-4 py-3 gap-3 border border-slate-100 w-full md:w-auto">
-      <i data-lucide="map-pin" class="w-4 h-4 text-slate-400"></i>
-      <select id="pegawai-filter-lokasi" class="bg-transparent border-none outline-none text-sm w-full font-medium text-slate-600">
-        <option value="">Semua Lokasi</option>
-        ${locations.map(l => `<option value="${l}">${l}</option>`).join('')}
-      </select>
-    </div>
-
-  </div>
-
-</div>
+        <div class="flex flex-1 w-full md:w-auto gap-4">
+          <div class="flex-1 flex items-center bg-slate-50 rounded-2xl px-4 py-3 gap-3 border border-slate-100">
+            <i data-lucide="search" class="w-4 h-4 text-slate-400"></i>
+            <input type="text" id="pegawai-search" placeholder="Cari NIP atau Nama..." class="bg-transparent border-none outline-none text-sm w-full">
+          </div>
+          <div class="flex items-center bg-slate-50 rounded-2xl px-4 py-3 gap-3 border border-slate-100 min-w-[120px]">
+            <i data-lucide="filter" class="w-4 h-4 text-slate-400"></i>
+            <select id="pegawai-filter-unit" class="bg-transparent border-none outline-none text-sm w-full font-medium text-slate-600">
+              <option value="">Semua Bidang</option>
+              ${units.map(u => `<option value="${u}">${u}</option>`).join('')}
+            </select>
+          </div>
+          <div class="flex items-center bg-slate-50 rounded-2xl px-4 py-3 gap-3 border border-slate-100 min-w-[120px]">
+            <i data-lucide="map-pin" class="w-4 h-4 text-slate-400"></i>
+            <select id="pegawai-filter-lokasi" class="bg-transparent border-none outline-none text-sm w-full font-medium text-slate-600">
+              <option value="">Semua Lokasi</option>
+              ${locations.map(l => `<option value="${l}">${l}</option>`).join('')}
+            </select>
+          </div>
+        </div>
         <div class="flex gap-3 w-full md:w-auto">
           <button onclick="window.exportPegawai()" class="flex-1 md:flex-none flex items-center justify-center gap-2 px-6 py-3 bg-white border border-slate-200 rounded-2xl text-sm font-bold text-slate-600 hover:bg-slate-50 transition-all">
             <i data-lucide="file-plus" class="w-4 h-4"></i> Export
           </button>
           <button onclick="window.editPegawai()" class="flex-1 md:flex-none flex items-center justify-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-2xl text-sm font-bold shadow-lg shadow-blue-200 hover:bg-blue-700 transition-all">
-            <i data-lucide="plus" class="w-4 h-4"></i> Tambah
+            <i data-lucide="plus" class="w-4 h-4"></i> Tambah Pegawai
           </button>
         </div>
       </div>
@@ -1197,7 +1192,7 @@ const renderAdminPegawai = (container: HTMLElement) => {
           <table class="w-full text-left border-collapse">
             <thead>
               <tr class="text-slate-400 text-[10px] uppercase tracking-widest border-b border-slate-50 bg-slate-50/50">
-                <th class="p-4 font-bold">NIP</th>
+                <th class="p-4 font-bold">NIK</th>
                 <th class="p-4 font-bold">Nama</th>
                 <th class="p-4 font-bold">ASN</th>
                 <th class="p-4 font-bold">Jabatan</th>
@@ -1280,18 +1275,20 @@ const renderPegawaiRows = (pegawai: any[]) => {
 };
 
 const renderAdminMonitoring = (container: HTMLElement, type: 'kp' | 'kgb') => {
-  const nearCount = adminData.pegawai.filter((p: any) => isNear(type === 'kp' ? p.tmtKpNext : p.tmtKgbNext, type === 'kp' ? 180 : 90)).length;
-  const overdueCount = adminData.pegawai.filter((p: any) => {
+  const filteredForType = adminData.pegawai.filter((p: any) => {
+    if (type === 'kp' && p.asn !== 'PNS') return false;
+    return true;
+  });
+
+  const nearCount = filteredForType.filter((p: any) => isNear(type === 'kp' ? p.tmtKpNext : p.tmtKgbNext, type === 'kp' ? 180 : 90)).length;
+  const overdueCount = filteredForType.filter((p: any) => {
     const date = type === 'kp' ? p.tmtKpNext : p.tmtKgbNext;
     if (!date) return false;
     return new Date(date) < new Date();
   }).length;
 
   // Filter pegawai yang "Soon" atau "Overdue"
-  const filteredPegawai = adminData.pegawai.filter((p: any) => {
-    // Filter ASN PNS untuk KP
-    if (type === 'kp' && p.asn !== 'PNS') return false;
-
+  const filteredPegawai = filteredForType.filter((p: any) => {
     const targetDate = type === 'kp' ? p.tmtKpNext : p.tmtKgbNext;
     if (!targetDate) return false;
     const isOverdue = new Date(targetDate) < new Date();
@@ -1584,7 +1581,6 @@ const renderAdminMonitoring = (container: HTMLElement, type: 'kp' | 'kgb') => {
           <label class="text-xs font-bold text-slate-400">Status ASN</label>
           <select id="swal-asn" class="input-field mt-1">
             <option value="PNS" ${p?.asn === 'PNS' ? 'selected' : ''}>PNS</option>
-            <option value="CPNS" ${p?.asn === 'CPNS' ? 'selected' : ''}>CPNS</option>
             <option value="PPPK" ${p?.asn === 'PPPK' ? 'selected' : ''}>PPPK</option>
             <option value="Honorer" ${p?.asn === 'Honorer' ? 'selected' : ''}>Honorer</option>
           </select>
