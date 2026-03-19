@@ -5,12 +5,6 @@ import * as d3 from 'd3';
 
 
 // --- CONFIGURATION ---
-// const GAS_URL = 'https://script.google.com/macros/s/AKfycbxhrCUKHLpYLeTYRFK4xMCaegKcehMWj2l7PoAVHIzByWvrWt7nPqbY6G0CN4yrd8v0tA/exec';
-// const GAS_URL = 'https://script.google.com/macros/s/AKfycbwxKIZQu0D7jrXzIwCNTQwU2KAhjY99wjx4lxlJOmtFEU6nf5ne7-UYKmMdYyfgrBITqg/exec';
-// const GAS_URL = 'https://script.google.com/macros/s/AKfycbx18wfWpMC5w3lNZ8gIY24L-FbllGFroFM0FJWEm1kHFdGxwjOPJCcB4JU4sPtMjsbf-A/exec';
-// const GAS_URL = 'https://script.google.com/macros/s/AKfycbyC7hYE5w1_hB3JnSJ_Z_LuEcLaBFChTvHgH30mHFwm2387LBNuJX9zyRWN8YqWH5yJfw/exec';
-//const GAS_URL = 'https://script.google.com/macros/s/AKfycbzorsD488lhGHkTq1tmj1JxhgaPZwcXC1tySDzFCiHMRYnu8eRs-3KdcBmjK3nKJLq8Cg/exec';
-// const GAS_URL = 'https://script.google.com/macros/s/AKfycbxviWAQuc53YssIjf4OeG-d-m8wcB4gmFkMBRsQ6vL71yysmxJ4ua-CEGIEp7wVFFoG9w/exec';
 const GAS_URL = 'https://script.google.com/macros/s/AKfycbxiWLy5vU1xF7dSvnXzM52Tearlrs8X4_73DSUvTWgmc0Da2OAAhGgJsxBHnHtoEZ4wEg/exec';
 
 let currentPage = 'home';
@@ -18,6 +12,7 @@ let isAdmin = !!localStorage.getItem('moka_token');
 let adminData: any = null;
 let adminTab = 'dashboard';
 let showProfileMenu = false;
+let distributionType = 'lokasiKerja';
 
 // --- UTILS ---
 const $ = (selector: string) => document.querySelector(selector);
@@ -854,8 +849,13 @@ const renderDistributionPieChart = () => {
   // Calculate distribution
   const distribution: { [key: string]: number } = {};
   adminData.pegawai.forEach((p: any) => {
-    const unit = p.unitKerja || p.unit_kerja || p.unitkerja || 'Lainnya';
-    distribution[unit] = (distribution[unit] || 0) + 1;
+    let key = 'Lainnya';
+    if (distributionType === 'unitKerja') {
+      key = p.unitKerja || p.unit_kerja || p.unitkerja || 'Lainnya';
+    } else {
+      key = p.lokasiKerja || p.lokasi_kerja || p.lokasikerja || 'Lainnya';
+    }
+    distribution[key] = (distribution[key] || 0) + 1;
   });
 
   const data = Object.entries(distribution).map(([name, value]) => ({ name, value }));
@@ -864,8 +864,8 @@ const renderDistributionPieChart = () => {
     return;
   }
 
-  const width = 250;
-  const height = 250;
+  const width = 320;
+  const height = 320;
   const radius = Math.min(width, height) / 2;
 
   const svg = d3.select(container)
@@ -882,12 +882,12 @@ const renderDistributionPieChart = () => {
     .sort(null);
 
   const arc = d3.arc<any>()
-    .innerRadius(radius * 0.5) // Donut chart
-    .outerRadius(radius * 0.8);
+    .innerRadius(0) // Full Pie Chart
+    .outerRadius(radius - 10);
 
   const hoverArc = d3.arc<any>()
-    .innerRadius(radius * 0.5)
-    .outerRadius(radius * 0.9);
+    .innerRadius(0)
+    .outerRadius(radius);
 
   const slices = svg.selectAll('path')
     .data(pie(data))
@@ -922,14 +922,14 @@ const renderDistributionPieChart = () => {
       tooltip.transition().duration(200).style('opacity', 0).style('display', 'none');
     })
     .on('click', (event, d: any) => {
-      (window as any).showUnitDetails(d.data.name);
+      (window as any).showUnitDetails(d.data.name, distributionType);
     });
 
   // Render Legend
   data.forEach((d, i) => {
     const legendItem = document.createElement('button');
     legendItem.className = 'flex items-center gap-2 px-3 py-1.5 rounded-full border border-slate-100 hover:bg-slate-50 transition-all text-[10px] font-bold text-slate-600';
-    legendItem.onclick = () => (window as any).showUnitDetails(d.name);
+    legendItem.onclick = () => (window as any).showUnitDetails(d.name, distributionType);
     legendItem.innerHTML = `
       <span class="w-2 h-2 rounded-full" style="background-color: ${color(d.name)}"></span>
       <span>${d.name} (${d.value})</span>
@@ -938,11 +938,15 @@ const renderDistributionPieChart = () => {
   });
 };
 
-(window as any).showUnitDetails = (unitName: string) => {
-  const employees = adminData.pegawai.filter((p: any) => (p.unitKerja || p.unit_kerja || p.unitkerja || 'Lainnya') === unitName);
-  
+(window as any).showUnitDetails = (name: string, type: string) => {
+  const employees = adminData.pegawai.filter((p: any) => {
+    const val = type === 'unitKerja' 
+      ? (p.unitKerja || p.unit_kerja || p.unitkerja) 
+      : (p.lokasiKerja || p.lokasi_kerja || p.lokasikerja);
+    return (val || 'Lainnya') === name;
+  });
   Swal.fire({
-    title: `Pegawai di ${unitName}`,
+    title: `Pegawai di ${name}`,
     html: `
       <div class="text-left space-y-2 max-h-[400px] overflow-y-auto p-2 no-scrollbar">
         ${employees.map((p: any) => `
@@ -1026,13 +1030,14 @@ const renderAdminDashboard = (container: HTMLElement) => {
       <div class="grid lg:grid-cols-3 gap-8">
         <!-- Chart Section -->
         <div class="lg:col-span-2 bg-white p-8 rounded-3xl shadow-sm border border-slate-100 space-y-8">
-          <div class="flex justify-between items-center">
-            <h3 class="font-bold text-slate-800">Distribusi Pegawai per Bidang</h3>
-            <div class="bg-slate-50 text-[10px] font-bold text-slate-500 rounded-lg px-3 py-2">
-              Tahun ${new Date().getFullYear()}
+          <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+            <h3 class="font-bold text-slate-800">Distribusi Pegawai</h3>
+            <div class="flex items-center gap-2 bg-slate-50 p-1 rounded-xl border border-slate-100">
+              <button id="btn-dist-lokasi" class="px-4 py-2 rounded-lg text-[10px] font-bold transition-all ${distributionType === 'lokasiKerja' ? 'bg-white text-blue-600 shadow-sm' : 'text-slate-400 hover:text-slate-600'}">Lokasi Kerja</button>
+              <button id="btn-dist-unit" class="px-4 py-2 rounded-lg text-[10px] font-bold transition-all ${distributionType === 'unitKerja' ? 'bg-white text-blue-600 shadow-sm' : 'text-slate-400 hover:text-slate-600'}">Unit Kerja</button>
             </div>
           </div>
-          <div id="distribution-chart-container" class="h-64 flex items-center justify-center pt-4 relative">
+          <div id="distribution-chart-container" class="h-72 flex items-center justify-center pt-4 relative">
             <!-- Pie Chart will be rendered here -->
           </div>
           <div id="distribution-legend" class="flex flex-wrap justify-center gap-4 pt-4 border-t border-slate-50">
@@ -1108,11 +1113,24 @@ const renderAdminDashboard = (container: HTMLElement) => {
   `;
 
   // Render D3 Chart
-  setTimeout(() => renderDistributionPieChart(), 100);
+  setTimeout(() => {
+    renderDistributionPieChart();
+    
+    $('#btn-dist-lokasi')?.addEventListener('click', () => {
+      distributionType = 'lokasiKerja';
+      renderAdminDashboard(container);
+    });
+    
+    $('#btn-dist-unit')?.addEventListener('click', () => {
+      distributionType = 'unitKerja';
+      renderAdminDashboard(container);
+    });
+  }, 100);
 };
 
 const renderAdminPegawai = (container: HTMLElement) => {
   const units = Array.from(new Set(adminData.pegawai.map((p: any) => p.unitKerja || p.unit_kerja || p.unitkerja || 'Lainnya'))).sort();
+  const locations = Array.from(new Set(adminData.pegawai.map((p: any) => p.lokasiKerja || p.lokasi_kerja || p.lokasikerja || 'Lainnya'))).sort();
   
   container.innerHTML = `
     <div class="animate-fade-in space-y-6">
@@ -1128,6 +1146,13 @@ const renderAdminPegawai = (container: HTMLElement) => {
             <select id="pegawai-filter-unit" class="bg-transparent border-none outline-none text-sm w-full font-medium text-slate-600">
               <option value="">Semua Bidang</option>
               ${units.map(u => `<option value="${u}">${u}</option>`).join('')}
+            </select>
+          </div>
+          <div class="flex items-center bg-slate-50 rounded-2xl px-4 py-3 gap-3 border border-slate-100 min-w-[120px]">
+            <i data-lucide="map-pin" class="w-4 h-4 text-slate-400"></i>
+            <select id="pegawai-filter-lokasi" class="bg-transparent border-none outline-none text-sm w-full font-medium text-slate-600">
+              <option value="">Semua Lokasi</option>
+              ${locations.map(l => `<option value="${l}">${l}</option>`).join('')}
             </select>
           </div>
         </div>
@@ -1146,11 +1171,15 @@ const renderAdminPegawai = (container: HTMLElement) => {
           <table class="w-full text-left border-collapse">
             <thead>
               <tr class="text-slate-400 text-[10px] uppercase tracking-widest border-b border-slate-50 bg-slate-50/50">
-                <th class="p-6 font-bold">Pegawai</th>
-                <th class="p-6 font-bold">Jabatan</th>
-                <th class="p-6 font-bold">Unit Kerja</th>
-                <th class="p-6 font-bold">Status</th>
-                <th class="p-6 font-bold text-right">Aksi</th>
+                <th class="p-4 font-bold">NIK</th>
+                <th class="p-4 font-bold">Nama</th>
+                <th class="p-4 font-bold">Jabatan</th>
+                <th class="p-4 font-bold">Unit Kerja</th>
+                <th class="p-4 font-bold">Lokasi Kerja</th>
+                <th class="p-4 font-bold">TMT KGB Next</th>
+                <th class="p-4 font-bold">TMT KP Next</th>
+                <th class="p-4 font-bold">Status</th>
+                <th class="p-4 font-bold text-right">Aksi</th>
               </tr>
             </thead>
             <tbody id="pegawai-table-body" class="text-sm">
@@ -1164,16 +1193,19 @@ const renderAdminPegawai = (container: HTMLElement) => {
 
   const searchInput = $('#pegawai-search') as HTMLInputElement;
   const unitFilter = $('#pegawai-filter-unit') as HTMLSelectElement;
+  const lokasiFilter = $('#pegawai-filter-lokasi') as HTMLSelectElement;
   const tbody = $('#pegawai-table-body');
 
   const filterPegawai = () => {
     const query = searchInput.value.toLowerCase();
     const unit = unitFilter.value;
+    const lokasi = lokasiFilter.value;
     
     const filtered = adminData.pegawai.filter((p: any) => {
       const matchSearch = p.nama.toLowerCase().includes(query) || p.nik.toString().toLowerCase().includes(query);
       const matchUnit = !unit || (p.unitKerja || p.unit_kerja || p.unitkerja || 'Lainnya') === unit;
-      return matchSearch && matchUnit;
+      const matchLokasi = !lokasi || (p.lokasiKerja || p.lokasi_kerja || p.lokasikerja || 'Lainnya') === lokasi;
+      return matchSearch && matchUnit && matchLokasi;
     });
     
     if (tbody) {
@@ -1184,34 +1216,32 @@ const renderAdminPegawai = (container: HTMLElement) => {
 
   searchInput?.addEventListener('input', filterPegawai);
   unitFilter?.addEventListener('change', filterPegawai);
+  lokasiFilter?.addEventListener('change', filterPegawai);
 
   createIcons({ icons });
 };
 
 const renderPegawaiRows = (pegawai: any[]) => {
-  if (pegawai.length === 0) return `<tr><td colspan="5" class="p-12 text-center text-slate-400 italic">Tidak ada pegawai ditemukan</td></tr>`;
+  if (pegawai.length === 0) return `<tr><td colspan="9" class="p-12 text-center text-slate-400 italic">Tidak ada pegawai ditemukan</td></tr>`;
   
   return pegawai.map((p: any) => {
-    const initials = p.nama.split(' ').map((n: any) => n[0]).join('').substring(0, 2).toUpperCase();
     return `
     <tr class="border-b border-slate-50 hover:bg-slate-50/50 transition-colors">
-      <td class="p-6">
-        <div class="flex items-center gap-4">
-          <div class="avatar">${initials}</div>
-          <div>
-            <p class="font-bold text-slate-800">${p.nama}</p>
-            <p class="text-[10px] font-mono text-slate-400">${p.nik}</p>
-          </div>
-        </div>
+      <td class="p-4 font-mono text-xs text-slate-500">${p.nik}</td>
+      <td class="p-4 font-bold text-slate-800">${p.nama}</td>
+      <td class="p-4 text-xs font-bold text-slate-600">${p.jabatan}</td>
+      <td class="p-4 text-slate-500 text-xs">${p.unitKerja || p.unit_kerja || p.unitkerja || '-'}</td>
+      <td class="p-4 text-slate-500 text-xs">${p.lokasiKerja || p.lokasi_kerja || p.lokasikerja || '-'}</td>
+      <td class="p-4 text-xs ${isNear(p.tmtKgbNext, 90) ? 'text-pink-600 font-bold' : 'text-slate-500'}">
+        ${p.tmtKgbNext ? formatDate(p.tmtKgbNext).split(' pukul')[0] : '-'}
       </td>
-      <td class="p-6">
-        <p class="text-xs font-bold text-slate-600">${p.jabatan}</p>
+      <td class="p-4 text-xs ${isNear(p.tmtKpNext, 180) ? 'text-blue-600 font-bold' : 'text-slate-500'}">
+        ${p.tmtKpNext ? formatDate(p.tmtKpNext).split(' pukul')[0] : '-'}
       </td>
-      <td class="p-6 text-slate-500 text-xs">${p.unitKerja || p.unit_kerja || p.unitkerja || '-'}</td>
-      <td class="p-6">
+      <td class="p-4">
         <span class="status-badge ${p.status === 'Tidak Aktif' ? 'status-inactive bg-red-50 text-red-500' : 'status-active bg-green-50 text-green-500'}">${p.status || 'Aktif'}</span>
       </td>
-      <td class="p-6 text-right">
+      <td class="p-4 text-right">
         <div class="flex justify-end gap-2">
           <button onclick="window.editPegawai('${p.nik}')" class="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-all"><i data-lucide="pencil" class="w-4 h-4"></i></button>
           <button onclick="window.deletePegawai('${p.nik}')" class="p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-xl transition-all"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
@@ -1533,6 +1563,10 @@ const renderAdminMonitoring = (container: HTMLElement, type: 'kp' | 'kgb') => {
             <input id="swal-unit" class="input-field mt-1" placeholder="Unit Kerja" value="${p?.unitKerja || p?.unit_kerja || p?.unitkerja || ''}">
           </div>
         </div>
+        <div>
+          <label class="text-xs font-bold text-slate-400">Lokasi Kerja</label>
+          <input id="swal-lokasi" class="input-field mt-1" placeholder="Lokasi Kerja" value="${p?.lokasiKerja || p?.lokasi_kerja || p?.lokasikerja || ''}">
+        </div>
         <div class="grid grid-cols-2 gap-4">
           <div>
             <label class="text-xs font-bold text-slate-400">TMT KGB Berikutnya</label>
@@ -1566,6 +1600,7 @@ const renderAdminMonitoring = (container: HTMLElement, type: 'kp' | 'kgb') => {
         nama: namaVal,
         jabatan: (document.getElementById('swal-jabatan') as HTMLInputElement).value,
         unitKerja: (document.getElementById('swal-unit') as HTMLInputElement).value,
+        lokasiKerja: (document.getElementById('swal-lokasi') as HTMLInputElement).value,
         tmtKgbNext: (document.getElementById('swal-kgb') as HTMLInputElement).value,
         tmtKpNext: (document.getElementById('swal-kp') as HTMLInputElement).value,
         status: (document.getElementById('swal-status') as HTMLSelectElement).value
@@ -1601,12 +1636,13 @@ const renderAdminMonitoring = (container: HTMLElement, type: 'kp' | 'kgb') => {
 (window as any).exportPegawai = () => {
   if (!adminData || !adminData.pegawai) return;
   
-  const headers = ['NIP', 'Nama', 'Jabatan', 'Unit Kerja', 'TMT KGB', 'TMT KP'];
+  const headers = ['NIP', 'Nama', 'Jabatan', 'Unit Kerja', 'Lokasi Kerja', 'TMT KGB', 'TMT KP'];
   const rows = adminData.pegawai.map((p: any) => [
     p.nik,
     p.nama,
     p.jabatan,
     p.unitKerja || p.unit_kerja || p.unitkerja || '',
+    p.lokasiKerja || p.lokasi_kerja || p.lokasikerja || '',
     p.tmtKgbNext ? new Date(p.tmtKgbNext).toLocaleDateString('id-ID') : '',
     p.tmtKpNext ? new Date(p.tmtKpNext).toLocaleDateString('id-ID') : ''
   ]);
