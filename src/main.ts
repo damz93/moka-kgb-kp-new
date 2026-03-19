@@ -5,7 +5,7 @@ import * as d3 from 'd3';
 
 
 // --- CONFIGURATION ---
-const GAS_URL = 'https://script.google.com/macros/s/AKfycbxiWLy5vU1xF7dSvnXzM52Tearlrs8X4_73DSUvTWgmc0Da2OAAhGgJsxBHnHtoEZ4wEg/exec';
+const GAS_URL = 'https://script.google.com/macros/s/AKfycbzxXxmw9oW4ES7UcP9c6NGG37JhQ8gTMxpGZQbK0hJiWekQEcZTJzhYXJTec3uOHCOebQ/exec';
 
 // --- STATE MANAGEMENT ---
 let currentPage = 'home';
