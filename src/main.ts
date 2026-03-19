@@ -7,6 +7,7 @@ import * as d3 from 'd3';
 // --- CONFIGURATION ---
 const GAS_URL = 'https://script.google.com/macros/s/AKfycbxiWLy5vU1xF7dSvnXzM52Tearlrs8X4_73DSUvTWgmc0Da2OAAhGgJsxBHnHtoEZ4wEg/exec';
 
+// --- STATE MANAGEMENT ---
 let currentPage = 'home';
 let isAdmin = !!localStorage.getItem('moka_token');
 let adminData: any = null;
@@ -864,14 +865,16 @@ const renderDistributionPieChart = () => {
     return;
   }
 
-  const width = 320;
-  const height = 320;
+  const width = 300;
+  const height = 300;
   const radius = Math.min(width, height) / 2;
 
   const svg = d3.select(container)
     .append('svg')
     .attr('width', width)
     .attr('height', height)
+    .attr('viewBox', `0 0 ${width} ${height}`)
+    .attr('preserveAspectRatio', 'xMidYMid meet')
     .append('g')
     .attr('transform', `translate(${width / 2}, ${height / 2})`);
 
@@ -883,11 +886,11 @@ const renderDistributionPieChart = () => {
 
   const arc = d3.arc<any>()
     .innerRadius(0) // Full Pie Chart
-    .outerRadius(radius - 10);
+    .outerRadius(radius - 20);
 
   const hoverArc = d3.arc<any>()
     .innerRadius(0)
-    .outerRadius(radius);
+    .outerRadius(radius - 5);
 
   const slices = svg.selectAll('path')
     .data(pie(data))
@@ -1037,7 +1040,7 @@ const renderAdminDashboard = (container: HTMLElement) => {
               <button id="btn-dist-unit" class="px-4 py-2 rounded-lg text-[10px] font-bold transition-all ${distributionType === 'unitKerja' ? 'bg-white text-blue-600 shadow-sm' : 'text-slate-400 hover:text-slate-600'}">Unit Kerja</button>
             </div>
           </div>
-          <div id="distribution-chart-container" class="h-72 flex items-center justify-center pt-4 relative">
+          <div id="distribution-chart-container" class="h-80 flex items-center justify-center pt-4 relative">
             <!-- Pie Chart will be rendered here -->
           </div>
           <div id="distribution-legend" class="flex flex-wrap justify-center gap-4 pt-4 border-t border-slate-50">
@@ -1636,7 +1639,7 @@ const renderAdminMonitoring = (container: HTMLElement, type: 'kp' | 'kgb') => {
 (window as any).exportPegawai = () => {
   if (!adminData || !adminData.pegawai) return;
   
-  const headers = ['NIP', 'Nama', 'Jabatan', 'Unit Kerja', 'Lokasi Kerja', 'TMT KGB', 'TMT KP'];
+  const headers = ['NIP', 'Nama', 'Jabatan', 'Unit Kerja', 'Lokasi Kerja', 'TMT KGB', 'TMT KP', 'Status'];
   const rows = adminData.pegawai.map((p: any) => [
     p.nik,
     p.nama,
@@ -1644,7 +1647,8 @@ const renderAdminMonitoring = (container: HTMLElement, type: 'kp' | 'kgb') => {
     p.unitKerja || p.unit_kerja || p.unitkerja || '',
     p.lokasiKerja || p.lokasi_kerja || p.lokasikerja || '',
     p.tmtKgbNext ? new Date(p.tmtKgbNext).toLocaleDateString('id-ID') : '',
-    p.tmtKpNext ? new Date(p.tmtKpNext).toLocaleDateString('id-ID') : ''
+    p.tmtKpNext ? new Date(p.tmtKpNext).toLocaleDateString('id-ID') : '',
+    p.status || 'Aktif'
   ]);
 
   const csvContent = [
