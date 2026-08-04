@@ -1196,14 +1196,6 @@ const renderAdminDashboard = (container: HTMLElement) => {
             Sistem Informasi Monitoring KGB & Kenaikan Pangkat MOKA siap membantu mengelola berkas dan data kepegawaian hari ini.
           </p>
         </div>
-        <div class="flex items-center gap-3 relative z-10 shrink-0">
-          <button id="btn-banner-pegawai" class="px-5 py-3 bg-white text-blue-600 rounded-2xl font-bold text-xs shadow-lg shadow-black/10 hover:bg-blue-50 transition-all flex items-center gap-2">
-            <i data-lucide="users" class="w-4 h-4"></i> Data Pegawai
-          </button>
-          <button id="btn-banner-kp" class="px-5 py-3 bg-white/10 backdrop-blur-md text-white rounded-2xl font-bold text-xs border border-white/20 hover:bg-white/20 transition-all flex items-center gap-2">
-            <i data-lucide="file-text" class="w-4 h-4"></i> Monitoring KP
-          </button>
-        </div>
         <div class="absolute -right-8 -bottom-8 w-48 h-48 bg-white/10 rounded-full blur-2xl"></div>
       </div>
 
@@ -1348,10 +1340,6 @@ const renderAdminDashboard = (container: HTMLElement) => {
       </div>
     </div>
   `;
-
-  // Banner Buttons
-  $('#btn-banner-pegawai')?.addEventListener('click', () => (window as any).switchTab('pegawai'));
-  $('#btn-banner-kp')?.addEventListener('click', () => (window as any).switchTab('kp'));
 
   // Render D3 Chart
   setTimeout(() => {
@@ -1595,6 +1583,17 @@ const renderMonitoringRows = (pegawaiList: any[], type: 'kp' | 'kgb') => {
   `}).join('');
 };
 
+const sortByNextTmt = (list: any[], type: 'kp' | 'kgb') => {
+  return [...list].sort((a: any, b: any) => {
+    const dateA = type === 'kp' ? a.tmtKpNext : a.tmtKgbNext;
+    const dateB = type === 'kp' ? b.tmtKpNext : b.tmtKgbNext;
+    if (!dateA && !dateB) return 0;
+    if (!dateA) return 1;
+    if (!dateB) return -1;
+    return new Date(dateA).getTime() - new Date(dateB).getTime();
+  });
+};
+
 const renderAdminMonitoring = (container: HTMLElement, type: 'kp' | 'kgb') => {
   const filteredForType = adminData.pegawai.filter((p: any) => {
     if (type === 'kp' && p.asn !== 'PNS') return false;
@@ -1608,14 +1607,17 @@ const renderAdminMonitoring = (container: HTMLElement, type: 'kp' | 'kgb') => {
     return new Date(date) < new Date();
   }).length;
 
-  // Filter pegawai yang "Soon" atau "Overdue" secara default
-  const filteredPegawai = filteredForType.filter((p: any) => {
-    const targetDate = type === 'kp' ? p.tmtKpNext : p.tmtKgbNext;
-    if (!targetDate) return false;
-    const isOverdue = new Date(targetDate) < new Date();
-    const isSoon = isNear(targetDate, type === 'kp' ? 180 : 90);
-    return isOverdue || isSoon;
-  });
+  // Filter pegawai yang "Soon" atau "Overdue" secara default & urutkan berdasarkan TMT paling dekat
+  const filteredPegawai = sortByNextTmt(
+    filteredForType.filter((p: any) => {
+      const targetDate = type === 'kp' ? p.tmtKpNext : p.tmtKgbNext;
+      if (!targetDate) return false;
+      const isOverdue = new Date(targetDate) < new Date();
+      const isSoon = isNear(targetDate, type === 'kp' ? 180 : 90);
+      return isOverdue || isSoon;
+    }),
+    type
+  );
 
   const themeColor = type === 'kp' ? 'blue' : 'pink';
   const themeBg = type === 'kp' ? 'bg-gradient-to-r from-blue-600 to-indigo-600' : 'bg-gradient-to-r from-pink-600 to-rose-600';
@@ -1725,7 +1727,7 @@ const renderAdminMonitoring = (container: HTMLElement, type: 'kp' | 'kgb') => {
     });
 
     if (tbody) {
-      tbody.innerHTML = renderMonitoringRows(matched, type);
+      tbody.innerHTML = renderMonitoringRows(sortByNextTmt(matched, type), type);
       createIcons({ icons });
     }
 
