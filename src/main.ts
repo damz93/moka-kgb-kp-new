@@ -18,6 +18,105 @@ let distributionType = 'lokasiKerja';
 const $ = (selector: string) => document.querySelector(selector);
 const $$ = (selector: string) => document.querySelectorAll(selector);
 
+const getAdminUsername = () => {
+  return localStorage.getItem('moka_username') || 'Admin SIMPEG';
+};
+
+const getAdminInitials = (name: string) => {
+  if (!name) return 'AS';
+  const parts = name.trim().split(' ');
+  if (parts.length >= 2) {
+    return (parts[0][0] + parts[1][0]).toUpperCase();
+  }
+  return name.substring(0, 2).toUpperCase();
+};
+
+const showRecentActivityModal = () => {
+  if (!adminData || (!adminData.kgb && !adminData.kp)) {
+    Swal.fire({
+      icon: 'info',
+      title: 'Memuat Data...',
+      text: 'Sedang menyiapkan data aktivitas pengajuan.',
+      timer: 1500,
+      showConfirmButton: false
+    });
+    return;
+  }
+
+  const allRequests = [
+    ...adminData.kgb.map((item: any) => ({ ...item, typeLabel: 'KGB' })),
+    ...adminData.kp.map((item: any) => ({ ...item, typeLabel: 'KP' }))
+  ].sort((a: any, b: any) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+
+  if (allRequests.length === 0) {
+    Swal.fire({
+      title: 'Aktivitas Pengajuan Terbaru',
+      html: `
+        <div class="text-center py-8 space-y-3">
+          <div class="w-12 h-12 bg-slate-100 text-slate-400 rounded-full flex items-center justify-center mx-auto">
+            <i data-lucide="inbox" class="w-6 h-6"></i>
+          </div>
+          <p class="text-sm font-bold text-slate-700">Belum Ada Aktivitas Pengajuan</p>
+          <p class="text-xs text-slate-400">Pengajuan berkas KGB & KP pegawai akan ditampilkan secara realtime di sini.</p>
+        </div>
+      `,
+      showConfirmButton: true,
+      confirmButtonText: 'Tutup'
+    });
+    setTimeout(() => createIcons({ icons }), 50);
+    return;
+  }
+
+  const listHtml = allRequests.slice(0, 15).map((r: any) => {
+    let statusClass = 'bg-amber-50 text-amber-600 border-amber-100';
+    if (r.status === 'Selesai') statusClass = 'bg-green-50 text-green-600 border-green-100';
+    if (r.status === 'Diproses') statusClass = 'bg-blue-50 text-blue-600 border-blue-100';
+    if (r.status === 'Ditolak') statusClass = 'bg-red-50 text-red-600 border-red-100';
+
+    return `
+      <div class="flex items-center justify-between p-3.5 rounded-2xl border border-slate-100 bg-slate-50/50 hover:bg-blue-50/40 transition-all text-left">
+        <div class="flex items-center gap-3">
+          <div class="w-9 h-9 rounded-xl ${r.typeLabel === 'KP' ? 'bg-indigo-100 text-indigo-600' : 'bg-blue-100 text-blue-600'} flex items-center justify-center font-bold text-xs shrink-0 shadow-sm">
+            ${r.typeLabel}
+          </div>
+          <div>
+            <div class="flex items-center gap-2">
+              <p class="text-xs font-bold text-slate-800">${r.nama || 'Pegawai'}</p>
+              <span class="text-[10px] font-mono text-slate-400">(${r.ticket})</span>
+            </div>
+            <p class="text-[10px] text-slate-400 font-medium">NIP: ${r.nik} • ${formatDate(r.timestamp)}</p>
+          </div>
+        </div>
+        <div class="flex items-center gap-2">
+          <span class="px-2.5 py-1 rounded-lg text-[10px] font-bold uppercase border ${statusClass}">
+            ${r.status}
+          </span>
+          <button onclick="Swal.close(); setTimeout(() => window.updateStatus('${r.ticket}'), 200);" class="p-1.5 text-slate-400 hover:text-blue-600 hover:bg-white rounded-lg transition-all" title="Ubah Status">
+            <i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i>
+          </button>
+        </div>
+      </div>
+    `;
+  }).join('');
+
+  Swal.fire({
+    title: '⏰ Aktivitas Pengajuan Terbaru',
+    html: `
+      <div class="text-left space-y-3">
+        <p class="text-xs text-slate-400">Menampilkan 15 riwayat pengajuan KGB & KP terbaru yang masuk ke sistem:</p>
+        <div class="space-y-2 max-h-[380px] overflow-y-auto pr-1 no-scrollbar">
+          ${listHtml}
+        </div>
+      </div>
+    `,
+    showConfirmButton: true,
+    confirmButtonText: 'Tutup',
+    width: '32rem'
+  });
+
+  setTimeout(() => createIcons({ icons }), 50);
+};
+
 const formatDate = (dateStr: string) => {
   if (!dateStr) return '-';
   try {
@@ -593,22 +692,35 @@ const renderLogin = (container: Element) => {
       const data = await res.json();
 
       if (data.success) {
+        const usernameVal = (formData.get('username') as string) || 'Admin SIMPEG';
         localStorage.setItem('moka_token', data.token);
+        localStorage.setItem('moka_username', usernameVal);
         isAdmin = true;
-        Swal.close();
+        Swal.fire({
+          icon: 'success',
+          title: `Selamat Datang, ${usernameVal}! 👋`,
+          text: 'Anda berhasil masuk ke Sistem Monitoring Kepegawaian (MOKA KGB KP).',
+          timer: 3000,
+          showConfirmButton: false,
+          toast: true,
+          position: 'top-end'
+        });
         currentPage = 'admin';
         render();
       } else {
-        Swal.fire('Gagal', 'Username atau password salah', 'error');
+        Swal.fire('Gagal Login', 'Username atau password tidak sesuai.', 'error');
       }
     } catch (err) {
-      Swal.fire('Error', 'Gagal login', 'error');
+      Swal.fire('Error', 'Gagal menghubungkan ke server login', 'error');
     }
   });
   createIcons({ icons });
 };
 
 const renderAdmin = (container: Element) => {
+  const adminName = getAdminUsername();
+  const adminInitials = getAdminInitials(adminName);
+
   container.innerHTML = `
     <div class="flex h-screen bg-slate-50 overflow-hidden flex-col md:flex-row">
       <!-- Sidebar (Desktop) -->
@@ -675,31 +787,31 @@ const renderAdmin = (container: Element) => {
               <input type="text" id="admin-header-search" placeholder="Cari NIP, Nama, atau Jabatan..." class="bg-transparent border-none outline-none text-sm w-full">
             </div>
             <div class="flex items-center gap-2 md:gap-4 relative">
-              <button class="relative p-2 text-slate-400 hover:text-blue-600 transition-colors">
+              <button id="btn-header-activity" class="relative p-2.5 text-slate-500 hover:text-blue-600 hover:bg-slate-50 rounded-2xl transition-all" title="Aktivitas Pengajuan Terbaru">
                 <i data-lucide="clock" class="w-5 h-5"></i>
-                <span class="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full border-2 border-white"></span>
+                <span class="absolute top-1.5 right-1.5 w-2.5 h-2.5 bg-red-500 rounded-full border-2 border-white animate-pulse"></span>
               </button>
               <div class="h-8 w-px bg-slate-200"></div>
               <div id="profile-trigger" class="flex items-center gap-2 md:gap-3 cursor-pointer hover:bg-slate-50 p-1 md:p-2 rounded-2xl transition-all">
                 <div class="text-right hidden md:block">
-                  <p class="text-xs font-bold text-slate-800">Admin SIMPEG</p>
+                  <p class="text-xs font-bold text-slate-800">${adminName}</p>
                   <p class="text-[10px] text-slate-400">Administrator</p>
                 </div>
-                <div class="w-8 h-8 md:w-10 md:h-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-bold text-sm md:text-base">
-                  AS
+                <div class="w-8 h-8 md:w-10 md:h-10 rounded-full bg-blue-600 text-white flex items-center justify-center font-bold text-sm md:text-base shadow-md shadow-blue-200">
+                  ${adminInitials}
                 </div>
               </div>
 
               <!-- Profile Dropdown -->
-              <div id="profile-dropdown" class="${showProfileMenu ? 'flex' : 'hidden'} absolute top-full right-0 mt-2 w-48 bg-white rounded-2xl shadow-2xl border border-slate-100 flex-col overflow-hidden animate-fade-in">
+              <div id="profile-dropdown" class="${showProfileMenu ? 'flex' : 'hidden'} absolute top-full right-0 mt-2 w-52 bg-white rounded-2xl shadow-2xl border border-slate-100 flex-col overflow-hidden animate-fade-in z-50">
                 <div class="p-4 border-b border-slate-50 bg-slate-50/50">
-                  <p class="text-xs font-bold text-slate-800">Admin SIMPEG</p>
-                  <p class="text-[10px] text-slate-400">admin@simpeg.go.id</p>
+                  <p class="text-xs font-bold text-slate-800">${adminName}</p>
+                  <p class="text-[10px] text-slate-400">${adminName.toLowerCase().replace(/\s+/g, '')}@simpeg.go.id</p>
                 </div>
-                <button class="p-4 text-left text-xs font-bold text-slate-600 hover:bg-slate-50 flex items-center gap-3">
-                  <i data-lucide="user" class="w-4 h-4"></i> Profil Saya
+                <button onclick="window.switchTab('pegawai')" class="p-3.5 text-left text-xs font-bold text-slate-600 hover:bg-slate-50 flex items-center gap-3">
+                  <i data-lucide="users" class="w-4 h-4 text-blue-500"></i> Kelola Data Pegawai
                 </button>
-                <button id="btn-logout" class="p-4 text-left text-xs font-bold text-red-500 hover:bg-red-50 flex items-center gap-3">
+                <button id="btn-logout" class="p-3.5 text-left text-xs font-bold text-red-500 hover:bg-red-50 flex items-center gap-3 border-t border-slate-50">
                   <i data-lucide="log-out" class="w-4 h-4"></i> Keluar
                 </button>
               </div>
@@ -713,6 +825,11 @@ const renderAdmin = (container: Element) => {
       </main>
     </div>
   `;
+
+  $('#btn-header-activity')?.addEventListener('click', (e) => {
+    e.stopPropagation();
+    showRecentActivityModal();
+  });
 
   $('#profile-trigger')?.addEventListener('click', (e) => {
     e.stopPropagation();
@@ -735,9 +852,19 @@ const renderAdmin = (container: Element) => {
 
   $('#btn-logout')?.addEventListener('click', () => {
     localStorage.removeItem('moka_token');
+    localStorage.removeItem('moka_username');
     isAdmin = false;
     currentPage = 'home';
     render();
+    Swal.fire({
+      icon: 'info',
+      title: 'Sampai Jumpa!',
+      text: 'Anda telah berhasil keluar dari sistem.',
+      timer: 2000,
+      showConfirmButton: false,
+      toast: true,
+      position: 'top-end'
+    });
   });
 
   // Header Search Bar Event Listener
@@ -1051,8 +1178,33 @@ const renderDistributionPieChart = () => {
 };
 
 const renderAdminDashboard = (container: HTMLElement) => {
+  (window as any).showAllActivities = showRecentActivityModal;
+
   container.innerHTML = `
     <div class="animate-fade-in space-y-8">
+      <!-- Welcome Hero Banner -->
+      <div class="bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-800 text-white p-6 md:p-8 rounded-3xl shadow-xl flex flex-col md:flex-row justify-between items-start md:items-center gap-6 relative overflow-hidden">
+        <div class="space-y-2 relative z-10">
+          <div class="inline-flex items-center gap-2 px-3.5 py-1 bg-white/10 backdrop-blur-md rounded-full text-xs font-bold tracking-wide border border-white/20">
+            <i data-lucide="sparkles" class="w-3.5 h-3.5 text-amber-300"></i>
+            <span>Selamat Datang Kembali</span>
+          </div>
+          <h2 class="text-2xl md:text-3xl font-extrabold tracking-tight">Halo, ${getAdminUsername()} 👋</h2>
+          <p class="text-blue-100 text-xs md:text-sm max-w-xl leading-relaxed">
+            Sistem Informasi Monitoring KGB & Kenaikan Pangkat MOKA siap membantu mengelola berkas dan data kepegawaian hari ini.
+          </p>
+        </div>
+        <div class="flex items-center gap-3 relative z-10 shrink-0">
+          <button id="btn-banner-pegawai" class="px-5 py-3 bg-white text-blue-600 rounded-2xl font-bold text-xs shadow-lg shadow-black/10 hover:bg-blue-50 transition-all flex items-center gap-2">
+            <i data-lucide="users" class="w-4 h-4"></i> Data Pegawai
+          </button>
+          <button id="btn-banner-kp" class="px-5 py-3 bg-white/10 backdrop-blur-md text-white rounded-2xl font-bold text-xs border border-white/20 hover:bg-white/20 transition-all flex items-center gap-2">
+            <i data-lucide="file-text" class="w-4 h-4"></i> Monitoring KP
+          </button>
+        </div>
+        <div class="absolute -right-8 -bottom-8 w-48 h-48 bg-white/10 rounded-full blur-2xl"></div>
+      </div>
+
       <!-- Stats Cards -->
       <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
         <div class="bg-white p-6 rounded-3xl shadow-sm border border-slate-100 flex flex-col gap-4">
@@ -1194,6 +1346,10 @@ const renderAdminDashboard = (container: HTMLElement) => {
       </div>
     </div>
   `;
+
+  // Banner Buttons
+  $('#btn-banner-pegawai')?.addEventListener('click', () => (window as any).switchTab('pegawai'));
+  $('#btn-banner-kp')?.addEventListener('click', () => (window as any).switchTab('kp'));
 
   // Render D3 Chart
   setTimeout(() => {
