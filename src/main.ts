@@ -4,7 +4,7 @@ import Swal from 'sweetalert2';
 import * as d3 from 'd3';
 
 // --- CONFIGURATION ---
-const GAS_URL = process.env.VITE_GAS_URL || 'YOUR_GOOGLE_APPS_SCRIPT_URL_HERE';
+const GAS_URL = process.env.VITE_GAS_URL || 'https://script.google.com/macros/s/AKfycbwizDUduOxGDMRPDz94df6NGmGxcStOjHc33t29SWMCw6PeQowc3OUAedmZapsMT3sm/exec';
 
 // --- STATE MANAGEMENT ---
 let currentPage = 'home';
