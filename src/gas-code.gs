@@ -24,6 +24,10 @@ function doGet(e) {
     return handleCheckTicket(e.parameter.ticket);
   }
   
+  if (action === 'checkNIP') {
+    return handleCheckNIP(e.parameter.nip);
+  }
+  
   if (action === 'getAdminData') {
     return handleGetAdminData(e.parameter.token);
   }
@@ -265,6 +269,33 @@ function handleDeletePegawai(data) {
   }
   
   return createResponse({ success: false, message: 'Pegawai not found' });
+}
+
+function handleCheckNIP(nip) {
+  const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+  const sheet = ss.getSheetByName('Pegawai');
+  const rows = sheet.getDataRange().getValues();
+  
+  for (let i = 1; i < rows.length; i++) {
+    if (rows[i][0].toString() === nip.toString()) {
+      return createResponse({
+        success: true,
+        data: {
+          nik: rows[i][0],
+          nama: rows[i][1],
+          jabatan: rows[i][2],
+          unitKerja: rows[i][3],
+          lokasiKerja: rows[i][4],
+          tmtKgbNext: rows[i][5],
+          tmtKpNext: rows[i][6],
+          status: rows[i][7],
+          asn: rows[i][8]
+        }
+      });
+    }
+  }
+  
+  return createResponse({ success: false });
 }
 
 function validateToken(token) {

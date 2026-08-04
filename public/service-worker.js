@@ -2,8 +2,7 @@ const CACHE_NAME = 'moka-kgb-kp-v2'; // Increment version
 const ASSETS = [
   '/',
   '/index.html',
-  '/manifest.json',
-  'https://cdn.jsdelivr.net/npm/sweetalert2@11'
+  '/manifest.json'
 ];
 
 // Install event - cache assets

@@ -4,7 +4,7 @@ import Swal from 'sweetalert2';
 import * as d3 from 'd3';
 
 // --- CONFIGURATION ---
-const GAS_URL = 'https://script.google.com/macros/s/AKfycbxJrhCd8Kvr3eKRH1Hm84jz7ZpqkxVKRl7wzEPSwloDTFGLk1C_ImxLcJEtIuB2Er38pw/exec';
+const GAS_URL = process.env.VITE_GAS_URL || 'YOUR_GOOGLE_APPS_SCRIPT_URL_HERE';
 
 // --- STATE MANAGEMENT ---
 let currentPage = 'home';
@@ -158,7 +158,7 @@ const renderCekTiket = (container: Element) => {
       
       <div class="glass-card p-8 space-y-6">
         <div class="space-y-4">
-          <input type="text" id="ticket-input" class="input-field text-center text-sm font-bold tracking-widest uppercase" placeholder="Ex: KGB-1993xxxx">
+          <input type="text" id="ticket-input" class="input-field text-center text-2xl font-bold tracking-widest uppercase" placeholder="CONTOH: KGB-19870101...">
           <button id="btn-cek-tiket" class="btn-primary">Cari Pengajuan</button>
         </div>
       </div>
@@ -256,7 +256,7 @@ const renderCekNip = (container: Element) => {
       
       <div class="glass-card p-8 space-y-6">
         <div class="space-y-4">
-          <input type="text" id="nip-input" class="input-field text-center text-base font-bold tracking-widest" placeholder="MASUKKAN 18 DIGIT NIP">
+          <input type="text" id="nip-input" class="input-field text-center text-2xl font-bold tracking-widest" placeholder="MASUKKAN 18 DIGIT NIP">
           <button id="btn-cek-nip" class="btn-primary">Cek Data Pegawai</button>
         </div>
       </div>
