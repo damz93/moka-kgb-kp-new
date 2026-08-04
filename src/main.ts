@@ -670,9 +670,9 @@ const renderAdmin = (container: Element) => {
             <p class="text-[10px] md:text-xs text-slate-400">Sistem Monitoring Kepegawaian</p>
           </div>
           <div class="flex items-center gap-3 md:gap-6">
-            <div class="hidden lg:flex items-center bg-slate-100 rounded-full px-4 py-2 gap-2 w-64">
+            <div class="hidden sm:flex items-center bg-slate-100 rounded-full px-4 py-2 gap-2 w-64 md:w-80 border border-slate-200 focus-within:ring-2 focus-within:ring-blue-500/20 focus-within:border-blue-500 transition-all">
               <i data-lucide="search" class="w-4 h-4 text-slate-400"></i>
-              <input type="text" placeholder="Cari pegawai..." class="bg-transparent border-none outline-none text-sm w-full">
+              <input type="text" id="admin-header-search" placeholder="Cari NIP, Nama, atau Jabatan..." class="bg-transparent border-none outline-none text-sm w-full">
             </div>
             <div class="flex items-center gap-2 md:gap-4 relative">
               <button class="relative p-2 text-slate-400 hover:text-blue-600 transition-colors">
@@ -739,6 +739,44 @@ const renderAdmin = (container: Element) => {
     currentPage = 'home';
     render();
   });
+
+  // Header Search Bar Event Listener
+  const headerSearchInput = $('#admin-header-search') as HTMLInputElement;
+  if (headerSearchInput) {
+    headerSearchInput.addEventListener('input', () => {
+      const query = headerSearchInput.value;
+      
+      // Auto switch to 'pegawai' tab if currently on 'dashboard'
+      if (adminTab === 'dashboard' && query.trim() !== '') {
+        adminTab = 'pegawai';
+        $$('[data-admin-tab]').forEach(b => {
+          const t = b.getAttribute('data-admin-tab');
+          b.classList.toggle('active', t === 'pegawai');
+          if (b.classList.contains('flex-col')) {
+            b.classList.toggle('text-blue-600', t === 'pegawai');
+            b.classList.toggle('text-slate-400', t !== 'pegawai');
+          }
+        });
+        const titleEl = $('#admin-page-title');
+        if (titleEl) titleEl.textContent = 'Data Pegawai';
+        renderAdminContent();
+      }
+
+      if (adminTab === 'pegawai') {
+        const pSearch = $('#pegawai-search') as HTMLInputElement;
+        if (pSearch) {
+          pSearch.value = query;
+          pSearch.dispatchEvent(new Event('input'));
+        }
+      } else if (adminTab === 'kp' || adminTab === 'kgb') {
+        const mSearch = $('#monitoring-search') as HTMLInputElement;
+        if (mSearch) {
+          mSearch.value = query;
+          mSearch.dispatchEvent(new Event('input'));
+        }
+      }
+    });
+  }
 
   // Sidebar Tab Events
   $$('[data-admin-tab]').forEach(btn => {
@@ -1184,7 +1222,7 @@ const renderAdminPegawai = (container: HTMLElement) => {
         <div class="flex flex-1 w-full md:w-auto gap-4">
           <div class="flex-1 flex items-center bg-slate-50 rounded-2xl px-4 py-3 gap-3 border border-slate-100">
             <i data-lucide="search" class="w-4 h-4 text-slate-400"></i>
-            <input type="text" id="pegawai-search" placeholder="Cari NIP atau Nama..." class="bg-transparent border-none outline-none text-sm w-full">
+            <input type="text" id="pegawai-search" placeholder="Cari NIP, Nama, atau Jabatan..." class="bg-transparent border-none outline-none text-sm w-full">
           </div>
           <div class="flex items-center bg-slate-50 rounded-2xl px-4 py-3 gap-3 border border-slate-100 min-w-[120px]">
             <i data-lucide="filter" class="w-4 h-4 text-slate-400"></i>
@@ -1243,12 +1281,15 @@ const renderAdminPegawai = (container: HTMLElement) => {
   const tbody = $('#pegawai-table-body');
 
   const filterPegawai = () => {
-    const query = searchInput.value.toLowerCase();
+    const query = searchInput.value.toLowerCase().trim();
     const unit = unitFilter.value;
     const lokasi = lokasiFilter.value;
     
     const filtered = adminData.pegawai.filter((p: any) => {
-      const matchSearch = p.nama.toLowerCase().includes(query) || p.nik.toString().toLowerCase().includes(query);
+      const matchSearch = !query || 
+        (p.nama && p.nama.toLowerCase().includes(query)) || 
+        (p.nik && p.nik.toString().toLowerCase().includes(query)) ||
+        (p.jabatan && p.jabatan.toLowerCase().includes(query));
       const matchUnit = !unit || (p.unitKerja || p.unit_kerja || p.unitkerja || 'Lainnya') === unit;
       const matchLokasi = !lokasi || (p.lokasiKerja || p.lokasi_kerja || p.lokasikerja || 'Lainnya') === lokasi;
       return matchSearch && matchUnit && matchLokasi;
@@ -1260,7 +1301,16 @@ const renderAdminPegawai = (container: HTMLElement) => {
     }
   };
 
-  searchInput?.addEventListener('input', filterPegawai);
+  const headerSearchInput = $('#admin-header-search') as HTMLInputElement;
+  if (headerSearchInput && headerSearchInput.value && searchInput) {
+    searchInput.value = headerSearchInput.value;
+    filterPegawai();
+  }
+
+  searchInput?.addEventListener('input', () => {
+    if (headerSearchInput) headerSearchInput.value = searchInput.value;
+    filterPegawai();
+  });
   unitFilter?.addEventListener('change', filterPegawai);
   lokasiFilter?.addEventListener('change', filterPegawai);
 
@@ -1298,6 +1348,95 @@ const renderPegawaiRows = (pegawai: any[]) => {
   `}).join('');
 };
 
+const renderMonitoringRows = (pegawaiList: any[], type: 'kp' | 'kgb') => {
+  if (pegawaiList.length === 0) {
+    return `
+      <tr>
+        <td colspan="6" class="p-12 text-center text-slate-400 italic">Tidak ada pegawai ditemukan.</td>
+      </tr>
+    `;
+  }
+
+  return pegawaiList.map((p: any) => {
+    const targetDate = type === 'kp' ? p.tmtKpNext : p.tmtKgbNext;
+    const initials = p.nama ? p.nama.split(' ').map((n: any) => n[0]).join('').substring(0, 2).toUpperCase() : 'P';
+    const isOverdue = targetDate ? new Date(targetDate) < new Date() : false;
+    const isSoon = targetDate ? isNear(targetDate, type === 'kp' ? 180 : 90) : false;
+    
+    let daysText = '-';
+    if (targetDate) {
+      const diffTime = new Date(targetDate).getTime() - new Date().getTime();
+      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+      daysText = diffDays < 0 ? `Lewat ${Math.abs(diffDays)} Hari` : `Sisa ${diffDays} Hari`;
+    }
+    
+    // Cari pengajuan aktif
+    const requests = type === 'kp' ? adminData.kp : adminData.kgb;
+    const activeRequest = requests.find((r: any) => r.nik.toString() === p.nik.toString());
+    
+    return `
+    <tr class="border-b border-slate-50 hover:bg-slate-50/50 transition-colors">
+      <td class="p-6">
+        <div class="flex items-center gap-4">
+          <div class="avatar">${initials}</div>
+          <div>
+            <p class="font-bold text-slate-800">${p.nama}</p>
+            <p class="text-[10px] font-mono text-slate-400">${p.nik}</p>
+          </div>
+        </div>
+      </td>
+      <td class="p-6">
+        <p class="text-xs font-bold text-slate-600">${p.jabatan || '-'}</p>
+      </td>
+      <td class="p-6">
+        <p class="text-xs font-bold ${isOverdue ? 'text-red-600' : isSoon ? 'text-amber-600' : 'text-slate-800'}">
+          ${targetDate ? formatDate(targetDate).split(' pukul')[0] : '-'}
+        </p>
+      </td>
+      <td class="p-6">
+        ${activeRequest ? `
+          <span class="px-2 py-1 bg-green-50 text-green-600 rounded-md text-[10px] font-bold uppercase">
+            ${activeRequest.status}
+          </span>
+        ` : `
+          <span class="px-2 py-1 bg-slate-50 text-slate-400 rounded-md text-[10px] font-bold uppercase">
+            Belum Diajukan
+          </span>
+        `}
+      </td>
+      <td class="p-6">
+        <div class="flex items-center gap-3">
+          <div class="progress-bar flex-1">
+            <div class="progress-fill ${isOverdue ? 'bg-red-500' : isSoon ? 'bg-amber-500' : 'bg-blue-500'}" style="width: ${isOverdue ? '100%' : '70%'}"></div>
+          </div>
+          <span class="text-[10px] font-bold uppercase ${isOverdue ? 'text-red-600' : isSoon ? 'text-amber-600' : 'text-slate-400'}">
+            ${daysText}
+          </span>
+        </div>
+      </td>
+      <td class="p-6 text-right">
+        <div class="flex justify-end gap-2">
+          ${activeRequest ? `
+            <button onclick="window.updateStatus('${activeRequest.ticket}')" class="p-2 text-blue-600 hover:bg-blue-50 rounded-xl transition-all" title="Update Status">
+              <i data-lucide="refresh-cw" class="w-4 h-4"></i>
+            </button>
+          ` : `
+            <button onclick="window.autoCreateRequest('${p.nik}', '${type}')" class="p-2 text-emerald-600 hover:bg-emerald-50 rounded-xl transition-all" title="Buat Pengajuan Otomatis">
+              <i data-lucide="circle-plus" class="w-4 h-4"></i>
+            </button>
+          `}
+          <button onclick="window.shareToWA('${p.nik}', '${type}')" class="p-2 text-green-600 hover:bg-green-50 rounded-xl transition-all" title="Share ke WhatsApp">
+            <i data-lucide="message-circle" class="w-4 h-4"></i>
+          </button>
+          <button onclick="window.editPegawai('${p.nik}')" class="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-all" title="Cek Data">
+            <i data-lucide="eye" class="w-4 h-4"></i>
+          </button>
+        </div>
+      </td>
+    </tr>
+  `}).join('');
+};
+
 const renderAdminMonitoring = (container: HTMLElement, type: 'kp' | 'kgb') => {
   const filteredForType = adminData.pegawai.filter((p: any) => {
     if (type === 'kp' && p.asn !== 'PNS') return false;
@@ -1311,7 +1450,7 @@ const renderAdminMonitoring = (container: HTMLElement, type: 'kp' | 'kgb') => {
     return new Date(date) < new Date();
   }).length;
 
-  // Filter pegawai yang "Soon" atau "Overdue"
+  // Filter pegawai yang "Soon" atau "Overdue" secara default
   const filteredPegawai = filteredForType.filter((p: any) => {
     const targetDate = type === 'kp' ? p.tmtKpNext : p.tmtKgbNext;
     if (!targetDate) return false;
@@ -1333,8 +1472,8 @@ const renderAdminMonitoring = (container: HTMLElement, type: 'kp' | 'kgb') => {
         </div>
         <div class="flex gap-4">
           <div class="bg-white/10 backdrop-blur-md p-4 rounded-3xl border border-white/20 text-center min-w-[100px]">
-            <p class="text-4xl font-bold">${adminData.pegawai.length}</p>
-            <p class="text-[10px] font-bold uppercase tracking-widest opacity-70">Total Pegawai</p>
+            <p class="text-4xl font-bold">${filteredForType.length}</p>
+            <p class="text-[10px] font-bold uppercase tracking-widest opacity-70">Total ${type === 'kp' ? 'PNS' : 'Pegawai'}</p>
           </div>
           <div class="bg-white/10 backdrop-blur-md p-4 rounded-3xl border border-white/20 text-center min-w-[100px]">
             <p class="text-4xl font-bold">${overdueCount}</p>
@@ -1347,13 +1486,32 @@ const renderAdminMonitoring = (container: HTMLElement, type: 'kp' | 'kgb') => {
         </div>
       </div>
 
+      <!-- Search & Filter Controls -->
+      <div class="bg-white p-4 rounded-3xl shadow-sm border border-slate-100 flex flex-col md:flex-row justify-between items-center gap-4">
+        <div class="flex-1 flex items-center bg-slate-50 rounded-2xl px-4 py-3 gap-3 border border-slate-100 w-full">
+          <i data-lucide="search" class="w-4 h-4 text-slate-400"></i>
+          <input type="text" id="monitoring-search" placeholder="Cari NIP, Nama, atau Jabatan..." class="bg-transparent border-none outline-none text-sm w-full">
+        </div>
+        <div class="flex items-center gap-2 w-full md:w-auto">
+          <div class="flex items-center bg-slate-50 rounded-2xl px-4 py-3 gap-3 border border-slate-100 w-full md:w-auto">
+            <i data-lucide="filter" class="w-4 h-4 text-slate-400"></i>
+            <select id="monitoring-filter-status" class="bg-transparent border-none outline-none text-sm w-full font-medium text-slate-600">
+              <option value="all_due">Semua Jatuh Tempo (${filteredPegawai.length})</option>
+              <option value="near">Menjelang ${type.toUpperCase()} (${nearCount})</option>
+              <option value="overdue">Melewati Masa (${overdueCount})</option>
+              <option value="all_pegawai">Semua Data Pegawai (${filteredForType.length})</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
       <div class="space-y-6">
         <div class="flex items-center justify-between">
           <div class="flex items-center gap-3">
             <i data-lucide="clock" class="w-5 h-5 text-${themeColor}-600"></i>
-            <h3 class="font-bold text-slate-800">Daftar Pegawai Jatuh Tempo ${type.toUpperCase()}</h3>
+            <h3 class="font-bold text-slate-800">Daftar Pegawai Monitoring ${type.toUpperCase()}</h3>
           </div>
-          <p class="text-xs text-slate-400 font-medium">Menampilkan ${filteredPegawai.length} pegawai yang memerlukan perhatian</p>
+          <p id="monitoring-count-summary" class="text-xs text-slate-400 font-medium">Menampilkan ${filteredPegawai.length} pegawai</p>
         </div>
 
         <div class="bg-white rounded-3xl shadow-sm border border-slate-100 overflow-hidden">
@@ -1369,86 +1527,8 @@ const renderAdminMonitoring = (container: HTMLElement, type: 'kp' | 'kgb') => {
                   <th class="p-6 font-bold text-right">Aksi</th>
                 </tr>
               </thead>
-              <tbody class="text-sm">
-                ${filteredPegawai.length === 0 ? `
-                  <tr>
-                    <td colspan="6" class="p-12 text-center text-slate-400">Tidak ada pegawai yang mendekati jatuh tempo ${type.toUpperCase()}.</td>
-                  </tr>
-                ` : filteredPegawai.map((p: any) => {
-                  const targetDate = type === 'kp' ? p.tmtKpNext : p.tmtKgbNext;
-                  const initials = p.nama.split(' ').map((n: any) => n[0]).join('').substring(0, 2).toUpperCase();
-                  const isOverdue = new Date(targetDate) < new Date();
-                  const isSoon = isNear(targetDate, type === 'kp' ? 180 : 90);
-                  
-                  const diffTime = new Date(targetDate).getTime() - new Date().getTime();
-                  const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-                  const daysText = diffDays < 0 ? `Lewat ${Math.abs(diffDays)} Hari` : `Sisa ${diffDays} Hari`;
-                  
-                  // Cari pengajuan aktif
-                  const requests = type === 'kp' ? adminData.kp : adminData.kgb;
-                  const activeRequest = requests.find((r: any) => r.nik.toString() === p.nik.toString());
-                  
-                  return `
-                  <tr class="border-b border-slate-50 hover:bg-slate-50/50 transition-colors">
-                    <td class="p-6">
-                      <div class="flex items-center gap-4">
-                        <div class="avatar">${initials}</div>
-                        <div>
-                          <p class="font-bold text-slate-800">${p.nama}</p>
-                          <p class="text-[10px] font-mono text-slate-400">${p.nik}</p>
-                        </div>
-                      </div>
-                    </td>
-                    <td class="p-6">
-                      <p class="text-xs font-bold text-slate-600">${p.jabatan}</p>
-                    </td>
-                    <td class="p-6">
-                      <p class="text-xs font-bold ${isOverdue ? 'text-red-600' : isSoon ? 'text-amber-600' : 'text-slate-800'}">
-                        ${formatDate(targetDate).split(' pukul')[0]}
-                      </p>
-                    </td>
-                    <td class="p-6">
-                      ${activeRequest ? `
-                        <span class="px-2 py-1 bg-green-50 text-green-600 rounded-md text-[10px] font-bold uppercase">
-                          ${activeRequest.status}
-                        </span>
-                      ` : `
-                        <span class="px-2 py-1 bg-slate-50 text-slate-400 rounded-md text-[10px] font-bold uppercase">
-                          Belum Diajukan
-                        </span>
-                      `}
-                    </td>
-                    <td class="p-6">
-                      <div class="flex items-center gap-3">
-                        <div class="progress-bar flex-1">
-                          <div class="progress-fill ${isOverdue ? 'bg-red-500' : isSoon ? 'bg-amber-500' : 'bg-blue-500'}" style="width: ${isOverdue ? '100%' : '70%'}"></div>
-                        </div>
-                        <span class="text-[10px] font-bold uppercase ${isOverdue ? 'text-red-600' : isSoon ? 'text-amber-600' : 'text-slate-400'}">
-                          ${daysText}
-                        </span>
-                      </div>
-                    </td>
-                    <td class="p-6 text-right">
-                      <div class="flex justify-end gap-2">
-                        ${activeRequest ? `
-                          <button onclick="window.updateStatus('${activeRequest.ticket}')" class="p-2 text-blue-600 hover:bg-blue-50 rounded-xl transition-all" title="Update Status">
-                            <i data-lucide="refresh-cw" class="w-4 h-4"></i>
-                          </button>
-                        ` : `
-                          <button onclick="window.autoCreateRequest('${p.nik}', '${type}')" class="p-2 text-emerald-600 hover:bg-emerald-50 rounded-xl transition-all" title="Buat Pengajuan Otomatis">
-                            <i data-lucide="circle-plus" class="w-4 h-4"></i>
-                          </button>
-                        `}
-                        <button onclick="window.shareToWA('${p.nik}', '${type}')" class="p-2 text-green-600 hover:bg-green-50 rounded-xl transition-all" title="Share ke WhatsApp">
-                          <i data-lucide="message-circle" class="w-4 h-4"></i>
-                        </button>
-                        <button onclick="window.editPegawai('${p.nik}')" class="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-all" title="Cek Data">
-                          <i data-lucide="eye" class="w-4 h-4"></i>
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                `}).join('')}
+              <tbody id="monitoring-table-body" class="text-sm">
+                ${renderMonitoringRows(filteredPegawai, type)}
               </tbody>
             </table>
           </div>
@@ -1456,6 +1536,58 @@ const renderAdminMonitoring = (container: HTMLElement, type: 'kp' | 'kgb') => {
       </div>
     </div>
   `;
+
+  const searchInput = $('#monitoring-search') as HTMLInputElement;
+  const statusFilter = $('#monitoring-filter-status') as HTMLSelectElement;
+  const tbody = $('#monitoring-table-body');
+  const countSummary = $('#monitoring-count-summary');
+
+  const filterMonitoring = () => {
+    const query = searchInput ? searchInput.value.toLowerCase().trim() : '';
+    const status = statusFilter ? statusFilter.value : 'all_due';
+
+    let baseList = filteredForType;
+    if (status === 'near') {
+      baseList = filteredForType.filter((p: any) => isNear(type === 'kp' ? p.tmtKpNext : p.tmtKgbNext, type === 'kp' ? 180 : 90));
+    } else if (status === 'overdue') {
+      baseList = filteredForType.filter((p: any) => {
+        const date = type === 'kp' ? p.tmtKpNext : p.tmtKgbNext;
+        return date ? new Date(date) < new Date() : false;
+      });
+    } else if (status === 'all_due') {
+      baseList = query ? filteredForType : filteredPegawai;
+    }
+
+    const matched = baseList.filter((p: any) => {
+      if (!query) return true;
+      const matchNama = p.nama ? p.nama.toLowerCase().includes(query) : false;
+      const matchNik = p.nik ? p.nik.toString().toLowerCase().includes(query) : false;
+      const matchJabatan = p.jabatan ? p.jabatan.toLowerCase().includes(query) : false;
+      return matchNama || matchNik || matchJabatan;
+    });
+
+    if (tbody) {
+      tbody.innerHTML = renderMonitoringRows(matched, type);
+      createIcons({ icons });
+    }
+
+    if (countSummary) {
+      countSummary.textContent = `Menampilkan ${matched.length} pegawai`;
+    }
+  };
+
+  const headerSearchInput = $('#admin-header-search') as HTMLInputElement;
+  if (headerSearchInput && headerSearchInput.value && searchInput) {
+    searchInput.value = headerSearchInput.value;
+    filterMonitoring();
+  }
+
+  searchInput?.addEventListener('input', () => {
+    if (headerSearchInput) headerSearchInput.value = searchInput.value;
+    filterMonitoring();
+  });
+  statusFilter?.addEventListener('change', filterMonitoring);
+
   createIcons({ icons });
 };
 
