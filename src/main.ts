@@ -4,7 +4,7 @@ import Swal from 'sweetalert2';
 import * as d3 from 'd3';
 
 // --- CONFIGURATION ---
-const GAS_URL = process.env.VITE_GAS_URL || 'https://script.google.com/macros/s/AKfycbwizDUduOxGDMRPDz94df6NGmGxcStOjHc33t29SWMCw6PeQowc3OUAedmZapsMT3sm/exec';
+const GAS_URL = process.env.VITE_GAS_URL || 'https://script.google.com/macros/s/AKfycbxZutOhmrz1NaBPbbR8M4FsGCscWtweR_PHdZfp1e7Q60oC-JKdJdGkqBGVvCZHl9E/exec';
 
 // --- STATE MANAGEMENT ---
 let currentPage = 'home';
@@ -236,8 +236,20 @@ const renderCekTiket = (container: Element) => {
         `;
       }
       createIcons({ icons });
-    } catch (e) {
-      resultDiv.innerHTML = '<p class="text-center text-red-500">Gagal mengambil data. Periksa koneksi atau URL API.</p>';
+    } catch (e: any) {
+      console.error('Check Ticket Error:', e);
+      resultDiv.innerHTML = `
+        <div class="glass-card p-8 text-center space-y-3 border border-red-200 bg-red-50/50">
+          <div class="w-12 h-12 bg-red-100 text-red-600 rounded-full flex items-center justify-center mx-auto">
+            <i data-lucide="wifi-off" class="w-6 h-6"></i>
+          </div>
+          <h4 class="font-bold text-red-900">Gagal Mengambil Data</h4>
+          <p class="text-xs text-slate-600 leading-relaxed max-w-md mx-auto">
+            Pastikan Apps Script di-deploy ulang sebagai <b>Web App</b> (Akses: <b>Anyone / Siapa Saja</b>).
+          </p>
+        </div>
+      `;
+      createIcons({ icons });
     }
   });
   createIcons({ icons });
@@ -389,8 +401,20 @@ const renderCekNip = (container: Element) => {
         `;
       }
       createIcons({ icons });
-    } catch (e) {
-      resultDiv.innerHTML = '<p class="text-center text-red-500">Gagal mengambil data. Periksa koneksi atau URL API.</p>';
+    } catch (e: any) {
+      console.error('Check NIP Error:', e);
+      resultDiv.innerHTML = `
+        <div class="glass-card p-8 text-center space-y-3 border border-red-200 bg-red-50/50">
+          <div class="w-12 h-12 bg-red-100 text-red-600 rounded-full flex items-center justify-center mx-auto">
+            <i data-lucide="wifi-off" class="w-6 h-6"></i>
+          </div>
+          <h4 class="font-bold text-red-900">Gagal Mengambil Data</h4>
+          <p class="text-xs text-slate-600 leading-relaxed max-w-md mx-auto">
+            Pastikan Apps Script di-deploy ulang sebagai <b>Web App</b> (Akses: <b>Anyone / Siapa Saja</b>).
+          </p>
+        </div>
+      `;
+      createIcons({ icons });
     }
   });
   createIcons({ icons });
