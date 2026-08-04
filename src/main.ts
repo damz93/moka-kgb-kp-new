@@ -653,9 +653,10 @@ const renderAjukan = (container: Element, nik = '', nama = '', kategori = '') =>
 const renderLogin = (container: Element) => {
   container.innerHTML = `
     <div class="animate-fade-in max-w-md mx-auto space-y-8 pt-12">
-      <div class="text-center space-y-2">
+      <div class="text-center space-y-3">
+        <img src="https://avalon-studio.site/moka/logo-moka.png" alt="MOKA Logo" class="w-16 h-16 object-contain mx-auto drop-shadow-lg" />
         <h2 class="text-3xl font-bold text-blue-950">Login Admin</h2>
-        <p class="text-slate-500">Akses dashboard pengelolaan data</p>
+        <p class="text-slate-500">Akses dashboard pengelolaan data MOKA</p>
       </div>
 
       <form id="form-login" class="glass-card p-8 space-y-6">
@@ -726,7 +727,7 @@ const renderAdmin = (container: Element) => {
       <!-- Sidebar (Desktop) -->
       <aside class="hidden md:flex w-72 bg-white border-r border-slate-200 flex-col p-6 gap-8 z-50">
         <div class="flex items-center gap-3 px-2">
-          <div class="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center text-white font-bold text-xl shadow-lg shadow-blue-200">M</div>
+          <img src="https://avalon-studio.site/moka/logo-moka.png" alt="MOKA Logo" class="w-10 h-10 object-contain drop-shadow" />
           <span class="font-bold text-xl tracking-tight text-blue-900">MOKA <span class="text-blue-600">KGB KP</span></span>
         </div>
         
@@ -775,7 +776,8 @@ const renderAdmin = (container: Element) => {
         <!-- Header -->
         <header class="bg-white border-b border-slate-200 px-4 md:px-8 py-4 sticky top-0 z-40 flex justify-between items-center shrink-0">
           <div class="flex items-center gap-3 md:hidden">
-             <div class="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center text-white font-bold text-lg">M</div>
+             <img src="https://avalon-studio.site/moka/logo-moka.png" alt="MOKA Logo" class="w-8 h-8 object-contain drop-shadow" />
+             <span class="font-bold text-lg text-blue-900">MOKA</span>
           </div>
           <div class="hidden sm:block">
             <h1 id="admin-page-title" class="text-lg md:text-xl font-bold text-slate-800">Dashboard</h1>

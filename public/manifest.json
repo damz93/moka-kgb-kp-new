@@ -8,13 +8,13 @@
   "theme_color": "#2563eb",
   "icons": [
     {
-      "src": "https://picsum.photos/192/192",
+      "src": "https://avalon-studio.site/moka/logo-moka.png",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "any maskable"
     },
     {
-      "src": "https://picsum.photos/512/512",
+      "src": "https://avalon-studio.site/moka/logo-moka.png",
       "sizes": "512x512",
       "type": "image/png"
     }
